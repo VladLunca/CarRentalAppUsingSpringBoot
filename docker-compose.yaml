@@ -1,0 +1,35 @@
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: car_rental_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: car_rental
+      MYSQL_USER: car_rental_user
+      MYSQL_PASSWORD: car_rental
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  app:
+    build: .
+    container_name: car_rental_app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/car_rental?characterEncoding=UTF-8&useUnicode=true
+      SPRING_DATASOURCE_USERNAME: car_rental_user
+      SPRING_DATASOURCE_PASSWORD: car_rental
+    volumes:
+      - ./uploads:/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+volumes:
+  mysql_data:

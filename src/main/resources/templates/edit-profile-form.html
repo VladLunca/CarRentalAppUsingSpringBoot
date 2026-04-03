@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Edit Profile Page</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous"/>
+</head>
+<body>
+<div class="container">
+    <div class="card shadow-sm">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h4>Edit Profile</h4>
+            </div>
+            <div th:if="${error}" class="alert alert-danger" role="alert">
+                <span th:text="${error}"></span>
+            </div>
+            <div class="card-body">
+                <div class="card-text">
+                    <form action="#" th:action="@{/profile/processEdit}"
+                          th:object="${webuser}"
+                          method="POST" class="form-horizontal">
+                        <input type="hidden" name="_method" value="put"/>
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">Username: </label>
+                            <input id="username" type="text" th:field="*{userName}" th:default="*{userName}"
+                                   class="form-control"/>
+                            <div class="text-danger" th:if="${#fields.hasErrors('userName')}" th:errors="*{userName}"></div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Password: </label>
+                            <input id="password" type="password" th:field="*{password}" th:value="*{password}" th:placeholder="............."
+                                   class="form-control" required/>
+                            <div class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="firstName" class="form-label">First Name: </label>
+                            <input id="firstName" type="text" th:field="*{firstName}"  th:default="*{firstName}"
+                                   class="form-control"/>
+                            <div class="text-danger" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="lastName" class="form-label">Last Name: </label>
+                            <input id="lastName" type="text" th:field="*{lastName}"  th:default="*{lastName}"
+                                   class="form-control"/>
+                            <div class="text-danger" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
+
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email: </label>
+                            <input id ="email" type="text" th:field="*{email}"  th:default="*{email}"
+                                   class="form-control"/>
+                            <div class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Phone Number: </label>
+                            <input id="phone" type="text" th:field="*{phoneNumber}"  th:default="*{phoneNumber}"
+                                   class="form-control"/>
+                            <div class="text-danger" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></div>
+
+                        </div>
+
+                        <input type="hidden" th:field="*{cnp}"  th:default="*{cnp}"
+                               class="form-control"/>
+                        <div class="text-danger" th:if="${#fields.hasErrors('cnp')}" th:errors="*{cnp}"></div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <a th:href="@{/static}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Back home
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Edit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
