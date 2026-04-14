@@ -22,6 +22,29 @@ public class Engine {
 
     @NotNull
     @Column(name = "engine_type")
+    @Enumerated(EnumType.STRING)
     private EngineTypes engineType;
 
+    public String getHorsePower() {
+        return horsePower;
+    }
+    public int getEngineCapacity() {
+        return engineCapacity;
+    }
+
+    public EngineTypes getEngineType() {
+        return engineType;
+    }
+
+    public void setEngineCapacity(int engineCapacity) {
+        this.engineCapacity = engineCapacity;
+    }
+
+    public void setEngineType(EngineTypes engineType) {
+        this.engineType = engineType;
+    }
+
+    public void setHorsePower(String horsePower) {
+        this.horsePower = horsePower;
+    }
 }

@@ -108,7 +108,7 @@ CREATE TABLE engine (
   horse_power INT NOT NULL,
   capacity    FLOAT,
   PRIMARY KEY (engine_id),
-  CONSTRAINT engine_type_valid CHECK (engine_type IN ('GASOLINE', 'DIESEL', 'HYBRID', 'ELECTRIC')),
+  CONSTRAINT engine_type_valid CHECK (engine_type IN ('GASOLINE', 'DIESEL', 'HYBRID', 'ELECTRIC','GPL')),
   CONSTRAINT horse_power_valid CHECK (horse_power > 0),
   CONSTRAINT capacity_valid    CHECK (capacity >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
