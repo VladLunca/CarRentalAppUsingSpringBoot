@@ -1,8 +1,8 @@
 package com.carreantalapp.app.model;
 
-
 import com.carreantalapp.app.model.utils.CarBodyTypes;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
@@ -13,15 +13,15 @@ public class CarBody {
     @Column(name="car_body_id")
     private int id;
 
-    @NotNull
+    @Min(value = 2, message = "Number of seats must be greater than 1")
     @Column(name="number_of_seats")
     private int numberOfSeats;
 
-    @NotNull
+    @Min(value = 2, message = "Number of doors must be at least 2")
     @Column(name = "number_of_doors")
     private int numberOfDoors;
 
-    @NotNull
+    @NotNull(message = "Car body type must not be null")
     @Column(name = "name")
     @Enumerated(EnumType.STRING)
     private CarBodyTypes name;

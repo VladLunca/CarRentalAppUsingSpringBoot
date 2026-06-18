@@ -2,6 +2,7 @@ package com.carreantalapp.app.model;
 
 import com.carreantalapp.app.model.utils.EngineTypes;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
@@ -12,22 +13,23 @@ public class Engine {
     @Column(name="engine_id")
     private Integer id;
 
-    @NotNull
+    @Min(value = 1, message = "Horse power must be greater than 0")
     @Column(name = "horse_power")
-    private String horsePower;
+    private int horsePower;
 
-    @NotNull
+    @Min(value = 0, message = "Engine capacity must not be less than 0")
     @Column(name = "capacity")
     private int engineCapacity;
 
-    @NotNull
+    @NotNull(message = "Engine type must not be null")
     @Column(name = "engine_type")
     @Enumerated(EnumType.STRING)
     private EngineTypes engineType;
 
-    public String getHorsePower() {
+    public int getHorsePower() {
         return horsePower;
     }
+
     public int getEngineCapacity() {
         return engineCapacity;
     }
@@ -44,7 +46,7 @@ public class Engine {
         this.engineType = engineType;
     }
 
-    public void setHorsePower(String horsePower) {
+    public void setHorsePower(int horsePower) {
         this.horsePower = horsePower;
     }
 }

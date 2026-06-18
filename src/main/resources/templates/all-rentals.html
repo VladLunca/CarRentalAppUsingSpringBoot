@@ -78,10 +78,10 @@
                 <td th:text="${#temporals.format(rental.startDate, 'yyyy-MM-dd')}"></td>
                 <td th:text="${#temporals.format(rental.endDate, 'yyyy-MM-dd')}"></td>
                 <td th:text="${rental.pickupLocation.address.cityName + ', '
-                             + rental.pickupLocation.address.streetName + ' nr '
+                             + rental.pickupLocation.address.streetName + ' no. '
                              + rental.pickupLocation.address.streetNumber}"></td>
                 <td th:text="${rental.dropoffLocation.address.cityName + ', '
-                             + rental.dropoffLocation.address.streetName + ' nr '
+                             + rental.dropoffLocation.address.streetName + ' no. '
                              + rental.dropoffLocation.address.streetNumber}"></td>
                 <td th:text="${rental.withDriver ? 'Yes' : 'No'}"></td>
                 <td th:text="${rental.childSeat ? 'Yes' : 'No'}"></td>

@@ -2,7 +2,6 @@ package com.carreantalapp.app.model;
 
 import com.carreantalapp.app.model.utils.TransmissionTypes;
 import jakarta.persistence.*;
-import jakarta.validation.Constraint;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
@@ -14,18 +13,16 @@ public class Transmission {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private int id;
 
-    @NotNull
+    @NotNull(message = "Transmission type must not be null")
     @Column(name = "transmission_type")
     @Enumerated(EnumType.STRING)
     private TransmissionTypes transmissionType;
 
-    @NotNull
+    @NotNull(message = "Transmission name must not be null")
     @Column(name= "transmission_name")
     private String transmissionName;
 
-    @NotNull
-    @Min(1)
+    @Min(value = 1, message = "Number of gears must be greater than 0")
     @Column(name= "number_of_gears")
     private int numberOfGears;
-
 }

@@ -1,6 +1,7 @@
 package com.carreantalapp.app.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
@@ -10,13 +11,16 @@ public class Address {
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name="address_id")
     private int id;
-    @NotNull
+
+    @NotNull(message = "Street name must not be null")
     @Column(name="street_name")
     private String streetName;
-    @NotNull
+
+    @NotNull(message = "City name must not be null")
     @Column(name="city_name")
     private String cityName;
-    @NotNull
+
+    @Min(value = 1, message = "Street number must be greater than 0")
     @Column(name="street_number")
     private int streetNumber;
 

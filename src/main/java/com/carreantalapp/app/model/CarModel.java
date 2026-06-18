@@ -9,54 +9,56 @@ import jakarta.validation.constraints.NotNull;
 @Table(name="car_model")
 public class CarModel {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="car_model_id")
     private int carModelId;
 
-    @NotNull
+    @NotNull(message = "Brand must not be null")
     @Column(name = "brand")
     private String brand;
 
-    @NotNull
+    @NotNull(message = "Model must not be null")
     @Column(name = "model")
     private String model;
 
-    @NotNull
+    @Min(value = 1886, message = "Year must be 1886 or later")
     @Column(name= "year")
     private int year;
 
-
-    @ManyToOne
+    @NotNull(message = "Engine must not be null")
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "engine_id")
     private Engine engine;
 
-    @ManyToOne
+    @NotNull(message = "Car body must not be null")
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="car_body_id")
     private CarBody carBody;
 
-    @ManyToOne
+    @NotNull(message = "Transmission must not be null")
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="transmission_id")
     private Transmission transmission;
 
-    @ManyToOne
+    @NotNull(message = "Category must not be null")
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @NotNull(message = "Traction must not be null")
     @Column(name="traction")
     @Enumerated(EnumType.STRING)
     private TractionTypes traction;
 
+    @Min(value = 0, message = "Fuel consumption must not be negative")
     @Column(name="fuel_consumption")
-    @Min(0)
     private float fuelConsumption;
 
+    @Min(value = 0, message = "Number of luggage must not be negative")
     @Column(name="number_of_luggage")
-    @Min(0)
     private int numberOfLuggage;
 
+    @Min(value = 1, message = "Price per day must be greater than 0")
     @Column(name="price_per_day")
-    @Min(0)
     private int pricePerDay;
-
-
-
 }
