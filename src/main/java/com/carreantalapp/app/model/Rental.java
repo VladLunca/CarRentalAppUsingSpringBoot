@@ -3,17 +3,21 @@ package com.carreantalapp.app.model;
 import com.carreantalapp.app.model.utils.RentalStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "rental")
 public class Rental {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "rental_id")
-    private int id;
+    private Long id;
 
     @NotNull(message = "Car must not be null")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -23,7 +27,7 @@ public class Rental {
     @NotNull(message = "User must not be null")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+    private User user;
 
     @NotNull(message = "Pickup location must not be null")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -54,83 +58,4 @@ public class Rental {
     @Column(name = "child_seat", nullable = false)
     private boolean childSeat = false;
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public Car getCar() {
-        return car;
-    }
-
-    public void setCar(Car car) {
-        this.car = car;
-    }
-
-    public Users getUser() {
-        return user;
-    }
-
-    public void setUser(Users user) {
-        this.user = user;
-    }
-
-    public RentalLocation getPickupLocation() {
-        return pickupLocation;
-    }
-
-    public void setPickupLocation(RentalLocation pickupLocation) {
-        this.pickupLocation = pickupLocation;
-    }
-
-    public RentalLocation getDropoffLocation() {
-        return dropoffLocation;
-    }
-
-    public void setDropoffLocation(RentalLocation dropoffLocation) {
-        this.dropoffLocation = dropoffLocation;
-    }
-
-    public LocalDate getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
-    }
-
-    public LocalDate getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
-    }
-
-    public RentalStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(RentalStatus status) {
-        this.status = status;
-    }
-
-    public boolean isWithDriver() {
-        return withDriver;
-    }
-
-    public void setWithDriver(boolean withDriver) {
-        this.withDriver = withDriver;
-    }
-
-    public boolean isChildSeat() {
-        return childSeat;
-    }
-
-    public void setChildSeat(boolean childSeat) {
-        this.childSeat = childSeat;
-    }
 }

@@ -3,14 +3,18 @@ package com.carreantalapp.app.model;
 import com.carreantalapp.app.model.utils.UserRoleTypes;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "user_roles")
 public class UserRoles {
     @Id
     @Column(name = "user_role_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @NotNull(message = "Role must not be null")
     @Column(name = "role", nullable = false, length = 15)
@@ -18,43 +22,20 @@ public class UserRoles {
     private UserRoleTypes role;
 
     @NotNull(message = "User must not be null")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private Users user;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "car_rental_company_id")
     private CarRentalCompany carRentalCompany;
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public UserRoleTypes getRole() {
-        return role;
-    }
-
-    public void setRole(UserRoleTypes role) {
-        this.role = role;
-    }
-
-    public Users getUser() {
-        return user;
-    }
-
-    public void setUser(Users user) {
+    public UserRoles(User user){
+        role = UserRoleTypes.CUSTOMER;
         this.user = user;
     }
 
-    public CarRentalCompany getCarRentalCompany() {
-        return carRentalCompany;
-    }
-
-    public void setCarRentalCompany(CarRentalCompany carRentalCompany) {
-        this.carRentalCompany = carRentalCompany;
+    public UserRoles() {
+        role = UserRoleTypes.CUSTOMER;
     }
 }

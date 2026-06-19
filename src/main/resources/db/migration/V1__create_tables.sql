@@ -254,20 +254,19 @@ CREATE TABLE rental (
   CONSTRAINT rental_dropoff_fk    FOREIGN KEY (dropoff_location_id)
     REFERENCES rental_location(rental_location_id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Cont SUPER_ADMIN  (user: admin / parola: admin)
 
+INSERT INTO user_details (first_name, last_name, phone_number, email, CNP)
+VALUES ('Super', 'Admin', '0700000000', 'admin@gmail.com', '1900101410011');
 
--- Ordinea de creare respectă toate dependențele:
--- -```
--- address
-  -- → car_rental_company
-    --  → user_roles
-      -- → rental_location
-        --  → rental
---  → rental_location
--- user_details
- -- → users
-   --   → user_roles
---- engine → car_body → transmission → category
- -- → car_model
-   --   → car
-     --     → rental
+INSERT INTO users (username, password, user_details_id, enabled)
+VALUES (
+           'admin',
+           '{bcrypt}$2a$10$wIhMeAanfDdxbpq8iDiG5.PDFHf.G6SJay.1dr79i/XBR2CRmrHIS',
+           LAST_INSERT_ID(),
+           TRUE
+       );
+
+INSERT INTO user_roles (user_id, role, car_rental_company_id)
+VALUES (LAST_INSERT_ID(), 'SUPER_ADMIN', NULL);
+

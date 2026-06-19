@@ -4,14 +4,18 @@ import com.carreantalapp.app.model.utils.TractionTypes;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 @Table(name="car_model")
 public class CarModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="car_model_id")
-    private int carModelId;
+    private Long carModelId;
 
     @NotNull(message = "Brand must not be null")
     @Column(name = "brand")

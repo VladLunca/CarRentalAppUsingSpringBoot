@@ -4,14 +4,18 @@ import com.carreantalapp.app.model.utils.EngineTypes;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "engine")
 public class Engine {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     @Column(name="engine_id")
-    private Integer id;
+    private Long id;
 
     @Min(value = 1, message = "Horse power must be greater than 0")
     @Column(name = "horse_power")
@@ -25,28 +29,4 @@ public class Engine {
     @Column(name = "engine_type")
     @Enumerated(EnumType.STRING)
     private EngineTypes engineType;
-
-    public int getHorsePower() {
-        return horsePower;
-    }
-
-    public int getEngineCapacity() {
-        return engineCapacity;
-    }
-
-    public EngineTypes getEngineType() {
-        return engineType;
-    }
-
-    public void setEngineCapacity(int engineCapacity) {
-        this.engineCapacity = engineCapacity;
-    }
-
-    public void setEngineType(EngineTypes engineType) {
-        this.engineType = engineType;
-    }
-
-    public void setHorsePower(int horsePower) {
-        this.horsePower = horsePower;
-    }
 }

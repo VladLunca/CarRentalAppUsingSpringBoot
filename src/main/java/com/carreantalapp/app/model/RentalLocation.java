@@ -3,15 +3,19 @@ package com.carreantalapp.app.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "rental_location")
 public class RentalLocation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "rental_location_id")
-    private int id;
+    private Long id;
 
     @NotNull(message = "Company must not be null")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,43 +35,4 @@ public class RentalLocation {
     @Column(name = "phone_number", length = 10)
     private String phoneNumber;
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public CarRentalCompany getCarRentalCompany() {
-        return carRentalCompany;
-    }
-
-    public void setCarRentalCompany(CarRentalCompany carRentalCompany) {
-        this.carRentalCompany = carRentalCompany;
-    }
-
-    public Address getAddress() {
-        return address;
-    }
-
-    public void setAddress(Address address) {
-        this.address = address;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
-    }
 }

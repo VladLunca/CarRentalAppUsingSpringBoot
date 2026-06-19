@@ -4,14 +4,18 @@ import com.carreantalapp.app.model.utils.TransmissionTypes;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 @Table(name="transmission")
 public class Transmission {
     @Id
     @Column(name="transmission_id")
     @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @NotNull(message = "Transmission type must not be null")
     @Column(name = "transmission_type")

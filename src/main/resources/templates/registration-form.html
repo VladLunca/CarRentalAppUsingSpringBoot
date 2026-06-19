@@ -15,59 +15,82 @@
             <div class="card-header bg-info text-white">
                 <h4>Registration</h4>
             </div>
-            <div th:if="${error}" class="alert alert-danger" role="alert">
-                <span th:text="${error}"></span>
-            </div>
-            <div th:if="${registrationError}" class="alert alert-danger" role="alert">
-                <span th:text="${registrationError}"></span>
-            </div>
             <div class="card-body">
                 <div class="card-text">
-                    <form action="#" th:action="@{/register/processRegistrationForm}"
+                    <form action="#" th:action="@{/registration/process}"
                           th:object="${webUserDTO}"
                           method="POST" class="form-horizontal">
-                        <!-- User name -->
-                        <div style="margin-bottom: 25px;" class="input-group">
+
+                        <div class="mb-3">
                             <input type="text" th:field="*{userName}" placeholder="Username (*)"
-                                   class="form-control"/>
-                        </div>
-                        <div style="margin-bottom: 25px;" class="input-group">
-
-                            <input type="text" th:field="*{firstName}" placeholder="First Name (*)"
-                                   class="form-control"/>
-                        </div>
-                        <div style="margin-bottom: 25px;" class="input-group">
-                            <input type="text" th:field="*{lastName}" placeholder="Last name (*)"
-                                   class="form-control"/>
-                        </div>
-                        <div style="margin-bottom: 25px;" class="input-group">
-                            <input type="password" th:field="*{password}" placeholder="Password (*)"
-                                   class="form-control"/>
-                        </div>
-                        <div style="margin-bottom: 25px;" class="input-group">
-
-                            <input type="text" th:field="*{cnp}" placeholder="National ID (CNP) (*)"
-                                   class="form-control"/>
-                        </div>
-                        <div style="margin-bottom: 25px;" class="input-group">
-
-                            <input type="text" th:field="*{phoneNumber}" placeholder="Phone Number (*)"
-                                   class="form-control"/>
-                        </div>
-                        <div style="margin-bottom: 25px;" class="input-group">
-
-                            <input type="email" th:field="*{email}" placeholder="Email (*)"
-                                   class="form-control"/>
-                        </div>
-                        <!-- Registration Button -->
-                        <div style="margin-top: 10px" class="form-group">
-                            <div class="col-sm-6 controls">
-                                <button type="submit" class="btn btn-primary">Register</button>
+                                   class="form-control" th:classappend="${#fields.hasErrors('userName')} ? 'is-invalid'"/>
+                            <div th:if="${#fields.hasErrors('userName')}" class="alert alert-danger mt-1">
+                                <span th:errors="*{userName}"></span>
                             </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="text" th:field="*{firstName}" placeholder="First Name (*)"
+                                   class="form-control" th:classappend="${#fields.hasErrors('firstName')} ? 'is-invalid'"/>
+                            <div th:if="${#fields.hasErrors('firstName')}" class="alert alert-danger mt-1">
+                                <span th:errors="*{firstName}"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="text" th:field="*{lastName}" placeholder="Last Name (*)"
+                                   class="form-control" th:classappend="${#fields.hasErrors('lastName')} ? 'is-invalid'"/>
+                            <div th:if="${#fields.hasErrors('lastName')}" class="alert alert-danger mt-1">
+                                <span th:errors="*{lastName}"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="password" th:field="*{password}" placeholder="Password (*)"
+                                   class="form-control" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'"/>
+                            <div th:if="${#fields.hasErrors('password')}" class="alert alert-danger mt-1">
+                                <span th:errors="*{password}"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="password" th:field="*{confirmPassword}" placeholder="Confirm Password (*)"
+                                   class="form-control" th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid'"/>
+                            <div th:if="${#fields.hasErrors('confirmPassword')}" class="alert alert-danger mt-1">
+                                <span th:errors="*{confirmPassword}"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="text" th:field="*{cnp}" placeholder="National ID (CNP) (*)"
+                                   class="form-control" th:classappend="${#fields.hasErrors('cnp')} ? 'is-invalid'"/>
+                            <div th:if="${#fields.hasErrors('cnp')}" class="alert alert-danger mt-1">
+                                <span th:errors="*{cnp}"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="text" th:field="*{phoneNumber}" placeholder="Phone Number (*)"
+                                   class="form-control" th:classappend="${#fields.hasErrors('phoneNumber')} ? 'is-invalid'"/>
+                            <div th:if="${#fields.hasErrors('phoneNumber')}" class="alert alert-danger mt-1">
+                                <span th:errors="*{phoneNumber}"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <input type="email" th:field="*{email}" placeholder="Email (*)"
+                                   class="form-control" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"/>
+                            <div th:if="${#fields.hasErrors('email')}" class="alert alert-danger mt-1">
+                                <span th:errors="*{email}"></span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 10px" class="form-group">
+                            <button type="submit" class="btn btn-primary">Register</button>
                         </div>
                     </form>
                     <div>
-                        <a th:href="@{/showMyLoginPage}"
+                        <a th:href="@{/login}"
                            class="btn btn-secondary mt-3"
                            role="button"
                            aria-pressed="true">Back to Log in</a>

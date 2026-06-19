@@ -3,8 +3,12 @@ package com.carreantalapp.app.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
+@Getter
+@Setter
 @Table(name="car_rental_company")
 public class CarRentalCompany {
     @Id
@@ -33,14 +37,4 @@ public class CarRentalCompany {
 
     @Column(name="description")
     private String description;
-
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-
-    public Long getId() {
-        return id;
-    }
 }
