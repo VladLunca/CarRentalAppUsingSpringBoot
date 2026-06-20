@@ -14,13 +14,34 @@
         <div class="card-body">
 
             <div sec:authorize="hasAuthority('ROLE_SUPER_ADMIN')" class="mb-4">
-                <h5 class="text-primary"> &#128100; Manager</h5>
+                <h5 class="text-primary">&#128737; Admin</h5>
                 <div class="d-flex gap-2 flex-wrap">
-                    <a th:href="@{/manager/users}" class="btn btn-outline-primary btn-sm">
-                        &#128101; Manage Users
+                    <a th:href="@{/admin/staff}" class="btn btn-outline-primary btn-sm">
+                        &#128101; Manage Accounts
                     </a>
-                    <a th:href="@{/manager/rentalsCompanies/showCompany}" class="btn btn-outline-primary btn-sm">
+                    <a th:href="@{/admin/rentalsCompanies/show}" class="btn btn-outline-primary btn-sm">
                         &#127970; Manage Companies
+                    </a>
+                </div>
+            </div>
+
+            <div sec:authorize="hasAuthority('ROLE_MANAGER')" class="mb-4">
+                <h5 class="text-warning">&#128188; Manager</h5>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a th:href="@{/manager/staff}" class="btn btn-outline-warning btn-sm">
+                        &#128101; Manage Staff
+                    </a>
+                </div>
+            </div>
+
+            <div sec:authorize="hasAnyAuthority('ROLE_MANAGER','ROLE_EMPLOYEE')" class="mb-4">
+                <h5 class="text-info">&#128188; Staff</h5>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a th:href="@{/cars/showCars}" class="btn btn-outline-info btn-sm">
+                        &#128663; Company Cars
+                    </a>
+                    <a th:href="@{/rentals/allRentals(view='man/emp')}" class="btn btn-outline-info btn-sm">
+                        &#128202; All Rentals
                     </a>
                 </div>
             </div>
@@ -35,22 +56,7 @@
                         &#129309; My Rentals
                     </a>
                     <a th:href="@{/profile/editUser}" class="btn btn-outline-success btn-sm">
-                         &#9881;Edit Profile
-                    </a>
-                </div>
-            </div>
-
-            <div sec:authorize="hasAnyAuthority('MANAGER','EMPLOYEE')" class="mb-4">
-                <h5 class="text-info"> &#128188; Staff</h5>
-                <div class="d-flex gap-2 flex-wrap">
-                    <a th:href="@{/cars/showCars}" class="btn btn-outline-info btn-sm">
-                       &#128663;  Company Cars
-                    </a>
-                   <!-- <a th:href="@{/employee/statistics}" class="btn btn-outline-info btn-sm">
-                        &#x1F4C8; Statistics
-                    </a>-->
-                    <a th:href="@{/rentals/allRentals(view='man/emp')}" class="btn btn-outline-info btn-sm">
-                        &#128202; All Rentals
+                        &#9881; Edit Profile
                     </a>
                 </div>
             </div>

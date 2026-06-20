@@ -35,7 +35,7 @@ public class UserService {
         return userRepository.findByUsername(userName).isPresent();
     }
     @Transactional
-    public boolean deleteUser(String username) {
+    public boolean removeUser(String username) {
         if(usernameExists(username)){
             if(userRepository.findByUsername(username).isPresent()){
                 userRepository.deleteUserById(userRepository.findByUsername(username).get().getId());
@@ -45,6 +45,7 @@ public class UserService {
             }
         }else {
             return false;
+
         }
         return true;
     }

@@ -36,8 +36,7 @@ public class WebUserDTO {
     private String phoneNumber;
 
     @NotBlank(message = "Email is required")
-    @Pattern(regexp = "^[\\w.+-]+@(gmail|yahoo|outlook)\\.(com|ro|net|org|ca)$",
-             message = "Email must be a valid address (e.g. name@gmail.com)")
+    @Pattern(regexp = "^[\\w.+-]+@(gmail|yahoo|outlook)\\.(com|ro|net|org|ca)$", message = "Email must be a valid address (e.g. name@gmail.com)")
     private String email;
 }
 

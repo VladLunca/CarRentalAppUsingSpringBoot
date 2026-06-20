@@ -28,7 +28,7 @@ public class RegistrationController {
     @GetMapping("/form")
     public String registrationForm(Model model){
         model.addAttribute("webUserDTO", new WebUserDTO());
-        return "registration-form";
+        return "auth/registration-form";
     }
     @PostMapping("/process")
     public String processRegistration(@Valid @ModelAttribute("webUserDTO") WebUserDTO webUserDTO, BindingResult bindingResult){
@@ -42,7 +42,7 @@ public class RegistrationController {
         }
 
         if(bindingResult.hasErrors()){
-            return "registration-form";
+            return "auth/registration-form";
         }
 
         userService.register(webUserDTO);
@@ -50,7 +50,7 @@ public class RegistrationController {
     }
     @GetMapping("/confirmation")
     public String showConfirmation() {
-        return "registration-confirmation";
+        return "auth/registration-confirmation";
     }
 
 
