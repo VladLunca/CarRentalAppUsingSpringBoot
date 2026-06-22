@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -76,6 +77,106 @@ public class CarService {
         Specification<Car> spec = Specification.where(CarSpec.ofCompany(company))
                 .and(CarSpec.fromFilter(filters));
         return carRepository.findAll(spec).stream().map(this::toDto).toList();
+    }
+
+
+
+
+    @Transactional(readOnly = true)
+    public CarDto getCarById(Long carId) {
+        return toDto(carRepository.findById(carId)
+                .orElseThrow(() -> new RuntimeException("Car not found: " + carId)));
+    }
+
+    @Transactional(readOnly = true)
+    public List<CarDto> getAllAvailableCars(CarFilterDto filters) {
+        Specification<Car> spec = Specification.where(CarSpec.statusAvailable())
+                .and(CarSpec.fromFilter(filters));
+        return carRepository.findAll(spec).stream().map(this::toDto).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public LocalDate getFirstAvailableDate() {
+        return getFirstAvailableDateFrom(LocalDate.now());
+    }
+
+    @Transactional(readOnly = true)
+    public LocalDate getFirstAvailableDateFrom(LocalDate from) {
+        Specification<Car> available = CarSpec.statusAvailable();
+        for (LocalDate d = from; d.isBefore(from.plusDays(365)); d = d.plusDays(1)) {
+            if (carRepository.count(available.and(CarSpec.freeInPeriod(d, d.plusDays(1)))) > 0) return d;
+        }
+        return from;
+    }
+
+    @Transactional(readOnly = true)
+    public LocalDate[] getNextAvailableWindow(LocalDate from) {
+        LocalDate windowStart = getFirstAvailableDateFrom(from);
+        Specification<Car> available = CarSpec.statusAvailable();
+        LocalDate windowEnd = windowStart;
+        for (LocalDate d = windowStart.plusDays(1); d.isBefore(windowStart.plusDays(60)); d = d.plusDays(1)) {
+            if (carRepository.count(available.and(CarSpec.freeInPeriod(d, d.plusDays(1)))) > 0) {
+                windowEnd = d;
+            } else {
+                break;
+            }
+        }
+        return new LocalDate[]{windowStart, windowEnd};
+    }
+
+    @Transactional(readOnly = true)
+    public List<LocalDate[]> getUpcomingAvailableWindows(int count) {
+        List<LocalDate[]> windows = new ArrayList<>();
+        Specification<Car> available = CarSpec.statusAvailable();
+        LocalDate search = LocalDate.now();
+        LocalDate limit = LocalDate.now().plusDays(365);
+        while (windows.size() < count && !search.isAfter(limit)) {
+            while (!search.isAfter(limit) &&
+                    carRepository.count(available.and(CarSpec.freeInPeriod(search, search.plusDays(1)))) == 0) {
+                search = search.plusDays(1);
+            }
+            if (search.isAfter(limit)) break;
+            LocalDate windowStart = search;
+            LocalDate windowEnd = search;
+            while (!windowEnd.plusDays(1).isAfter(limit) &&
+                    carRepository.count(available.and(CarSpec.freeInPeriod(windowEnd.plusDays(1), windowEnd.plusDays(2)))) > 0) {
+                windowEnd = windowEnd.plusDays(1);
+            }
+            windows.add(new LocalDate[]{windowStart, windowEnd});
+            search = windowEnd.plusDays(1);
+        }
+        return windows;
+    }
+
+    @Transactional(readOnly = true)
+    public LocalDate[] getBestWindowWithin(LocalDate start, LocalDate end) {
+        Specification<Car> available = CarSpec.statusAvailable();
+        LocalDate windowStart = null;
+        LocalDate windowEnd = null;
+        LocalDate bestStart = null;
+        LocalDate bestEnd = null;
+        for (LocalDate d = start; !d.isAfter(end.minusDays(1)); d = d.plusDays(1)) {
+            if (carRepository.count(available.and(CarSpec.freeInPeriod(d, d.plusDays(1)))) > 0) {
+                if (windowStart == null) windowStart = d;
+                windowEnd = d;
+            } else {
+                if (windowStart != null) {
+                    if (bestStart == null || windowEnd.toEpochDay() - windowStart.toEpochDay()
+                            > bestEnd.toEpochDay() - bestStart.toEpochDay()) {
+                        bestStart = windowStart;
+                        bestEnd = windowEnd;
+                    }
+                    windowStart = null;
+                    windowEnd = null;
+                }
+            }
+        }
+        if (windowStart != null && (bestStart == null || windowEnd.toEpochDay() - windowStart.toEpochDay()
+                > bestEnd.toEpochDay() - bestStart.toEpochDay())) {
+            bestStart = windowStart;
+            bestEnd = windowEnd;
+        }
+        return bestStart != null ? new LocalDate[]{bestStart, bestEnd} : null;
     }
 
     @Transactional(readOnly = true)
@@ -186,4 +287,5 @@ public class CarService {
         imageFile.transferTo(dest.toFile());
         return "/uploads/" + filename;
     }
+
 }

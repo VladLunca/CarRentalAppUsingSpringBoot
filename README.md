@@ -1,6 +1,186 @@
-# Car Rental App
+# Car Rental App — v2
 
-A web-based car rental management system built with Spring Boot, Thymeleaf and MySQL.
+Spring Boot web application for managing a car rental business. Supports multiple companies, roles, car fleet management, and customer rentals.
+
+---
+
+## Overview
+
+### Functionality
+
+The application covers two main domains:
+
+**Fleet management** — Employees and managers manage the company's car fleet. Car models are built from reusable components (engine, transmission, car body, category). Individual cars reference a model and belong to a company. Cars can be added, updated, toggled between available/in-service, and deleted. Component pages show existing entries alongside the add form and prevent deletion of anything still referenced.
+
+**Rentals** — Customers browse available cars for a chosen date range, filtered by brand, body type, category, transmission, traction type, and year. They submit a rental request with pickup/dropoff addresses and optional extras (driver, child seat). Rentals start as `PENDING` and must be approved by staff to become `ACTIVE`. Customers can cancel their own pending rentals; staff can cancel any.
+
+**Account management** — Users register, log in, and edit their own profile (name, email, phone, username, password). Managers manage their company's employees. A super-admin manages all accounts and companies platform-wide.
+
+### Architecture
+
+The application follows a standard layered MVC structure:
+
+```
+Browser → Controller → Service → Repository → Database
+                   ↕
+                  DTO
+```
+
+- **Controllers** handle HTTP routing, read request data into DTOs, delegate all logic to services, and pass DTOs to Thymeleaf templates. Entities never leave the service layer.
+- **Services** own all business logic: validation, entity mapping, transactional writes, and access checks. Each service is responsible for one bounded area (cars, car models, engines, rentals, users, staff).
+- **Repositories** are Spring Data JPA interfaces. Complex queries use JPQL `@Query`; simple existence checks use derived query methods (`existsByCategory_Id`).
+- **Security** is enforced at the method level with `@PreAuthorize` on controller methods. Thymeleaf templates use `sec:authorize` to conditionally render staff-only UI.
+- **Specifications** (`CarSpec`) compose JPA `Specification<Car>` predicates for dynamic car filtering, evaluated entirely at the database level.
+
+---
+
+## Diagrams
+
+### Entity-Relationship Diagram
+
+```mermaid
+erDiagram
+    User ||--|| UserDetails : has
+    User ||--|| UserRoles : has
+    UserRoles }o--o| CarRentalCompany : "belongs to (optional)"
+
+    Car }o--|| CarModel : uses
+    Car }o--|| CarRentalCompany : "owned by"
+
+    CarModel }o--|| Engine : uses
+    CarModel }o--|| Transmission : uses
+    CarModel }o--|| CarBody : uses
+    CarModel }o--|| Category : uses
+
+    Rental }o--|| Car : rents
+    Rental }o--|| User : "made by"
+    Rental }o--|| RentalLocation : "pickup at"
+    Rental }o--|| RentalLocation : "dropoff at"
+
+    RentalLocation }o--|| CarRentalCompany : "belongs to"
+    RentalLocation }o--|| Address : at
+```
+
+---
+
+### Rental Status State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING : customer submits rental
+
+    PENDING --> ACTIVE    : staff approves
+    PENDING --> CANCELLED : customer or staff cancels
+
+    ACTIVE --> COMPLETED  : end date passes (automatic)
+
+    COMPLETED --> [*]
+    CANCELLED --> [*]
+```
+
+---
+
+### Class Diagram — Services & Controllers
+
+```mermaid
+classDiagram
+    direction TB
+
+    class RentalController {
+        +newRentalForm(carId, start, end)
+        +processRentalForm(dto)
+        +allRentals(view, filters)
+        +cancelRental(rentalId)
+        +approveRental(rentalId)
+    }
+
+    class RentalService {
+        +getRentalsForUser(username, filters) List~RentalDto~
+        +getRentalsForCompany(companyId, filters) List~RentalDto~
+        +createRental(username, dto)
+        +approveRental(rentalId)
+        +cancelRental(rentalId, username)
+    }
+
+    class CarBrowserController {
+        +chooseDates()
+        +carsAvailableToRent(start, end, filters)
+        +showCars(filters)
+    }
+
+    class EmployeeController {
+        +addCarsForm()
+        +processCarsForm(dto, image)
+        +updateCar(carId)
+        +processUpdateCarsForm(dto, image)
+        +deleteCar(carId)
+        +toggleStatus(carId)
+    }
+
+    class CarService {
+        +getCompanyCars(companyId, filters) List~CarDto~
+        +getCarsAvailableForDates(start, end, filters) List~CarDto~
+        +getCarById(carId) CarDto
+        +getFirstAvailableDate() LocalDate
+        +getFirstAvailableDateFrom(from) LocalDate
+        +getNextAvailableWindow(from) LocalDate[]
+        +saveCarFromDto(dto, companyId, image)
+        +updateCar(dto, image)
+        +deleteCar(carId)
+        +toggleCarStatus(carId)
+    }
+
+    class CarModelController {
+        +addCarModelForm()
+        +processCarModelForm(dto)
+        +deleteCarModel(carModelId)
+    }
+
+    class CarModelService {
+        +getAllCarModels() List~CarModelFormDto~
+        +saveCarModel(dto)
+        +deleteCarModel(id)
+    }
+
+    class ProfileController {
+        +editProfileForm()
+        +processEdit(dto)
+    }
+
+    class UserService {
+        +getProfileEditDto(username) ProfileEditDto
+        +updateProfile(username, dto) boolean
+    }
+
+    class StaffService {
+        +getCarRentalCompanyIdByUserId(auth) Long
+        +getRoleFromAuthentication(auth) UserRoleTypes
+        +addRoleToUserByUserId(userId, role, companyId, assignerRole)
+        +removeRoleFromUserByUserId(userId)
+        +toggleAccountStatus(userId)
+    }
+
+    class CarSpec {
+        +statusAvailable() Specification~Car~$
+        +freeInPeriod(start, end) Specification~Car~$
+        +ofCompany(company) Specification~Car~$
+        +fromFilter(filters) Specification~Car~$
+    }
+
+    RentalController --> RentalService
+    RentalController --> CarService
+    RentalController --> StaffService
+
+    CarBrowserController --> CarService
+    EmployeeController --> CarService
+    EmployeeController --> StaffService
+
+    CarModelController --> CarModelService
+
+    ProfileController --> UserService
+
+    CarService ..> CarSpec : uses
+```
 
 ---
 
@@ -9,37 +189,58 @@ A web-based car rental management system built with Spring Boot, Thymeleaf and M
 | Layer | Technology |
 |---|---|
 | Backend | Spring Boot 4.0.5, Java 21 |
-| Persistence | Spring Data JPA, Hibernate, MySQL |
-| Migrations | Flyway |
-| Security | Spring Security 6 |
-| Frontend | Thymeleaf, Bootstrap 5.2.3 |
-| Utilities | Lombok |
-| Containerization | Docker (multi-stage build) |
+| Security | Spring Security 6, method-level `@PreAuthorize` |
+| Persistence | Spring Data JPA / Hibernate, MySQL |
+| Templates | Thymeleaf + Bootstrap 5.2.3 |
+| Build | Maven |
+| Runtime | Docker |
 
 ---
 
-## Running the Application
+## Roles
 
-### With Docker
+No role hierarchy — each role is independent.
 
-```bash
-docker build -t car-rental-app .
-docker run -p 8080:8080 \
-  -e SPRING_DATASOURCE_URL=jdbc:mysql://<host>:3306/car_rental \
-  -e SPRING_DATASOURCE_USERNAME=<user> \
-  -e SPRING_DATASOURCE_PASSWORD=<password> \
-  car-rental-app
-```
+| Role | Description |
+|---|---|
+| `CUSTOMER` | Browse available cars, create and manage own rentals |
+| `EMPLOYEE` | Manage company car fleet, car models and components |
+| `MANAGER` | Employee permissions + manage company staff + approve rentals |
+| `SUPER_ADMIN` | Platform-level admin: manage companies and all accounts |
 
-### Locally
+---
 
-Requires Java 21 and a running MySQL instance on port 3307 with database `car_rental`.
+## Domain Model
 
-```bash
-mvn spring-boot:run
-```
+### Core Entities
 
-The app is available at `http://localhost:8080`.
+| Entity | Table | Key Fields |
+|---|---|---|
+| `User` | `users` | `username`, `password`, `enabled` |
+| `UserDetails` | `user_details` | `firstName`, `lastName`, `email`, `cnp`, `phoneNumber` |
+| `UserRoles` | `user_roles` | `role` (enum), `carRentalCompany` (FK) |
+| `CarRentalCompany` | `car_rental_company` | `name` |
+| `Car` | `car` | `licencePlate`, `color`, `mileage`, `status`, `image` |
+| `CarModel` | `car_model` | `brand`, `model`, `year`, `pricePerDay`, `traction`, `fuelConsumption`, `numberOfLuggage` |
+| `Engine` | `engine` | `horsePower`, `engineCapacity`, `engineType` |
+| `Transmission` | `transmission` | `transmissionName`, `transmissionType`, `numberOfGears` |
+| `CarBody` | `car_body` | `name` (enum), `numberOfSeats`, `numberOfDoors` |
+| `Category` | `category` | `categoryName`, `categoryDescription` |
+| `Rental` | `rental` | `startDate`, `endDate`, `status`, `withDriver`, `childSeat` |
+| `RentalLocation` | `rental_location` | `name`, `phoneNumber` |
+| `Address` | `address` | `cityName`, `streetName`, `streetNumber` |
+
+### Enums
+
+| Enum | Values |
+|---|---|
+| `UserRoleTypes` | `CUSTOMER`, `EMPLOYEE`, `MANAGER`, `SUPER_ADMIN` |
+| `CarStatus` | `AVAILABLE`, `RENTED`, `IN_SERVICE` |
+| `RentalStatus` | `PENDING`, `ACTIVE`, `COMPLETED`, `CANCELLED` |
+| `EngineTypes` | petrol / diesel / electric / hybrid variants |
+| `TransmissionTypes` | manual / automatic variants |
+| `CarBodyTypes` | sedan / SUV / hatchback / etc. |
+| `TractionTypes` | `FWD`, `RWD`, `AWD` |
 
 ---
 
@@ -47,274 +248,295 @@ The app is available at `http://localhost:8080`.
 
 ```
 src/main/java/com/carreantalapp/app/
-├── configurations/       # SecurityConfig, WebConfig
+├── configurations/
+│   └── SecurityConfig.java
 ├── controllers/
-│   ├── admin/            # Controllers accessible only by SUPER_ADMIN
-│   │   ├── AdminController.java
-│   │   └── CompanyController.java
-│   ├── car/              # Car browsing and car model management
-│   │   ├── CarBrowserController.java
-│   │   └── CarModelController.java
-│   │   └── components/
-│   │       ├── EngineController.java
-│   │       └── TransmissionController.java
-│   ├── AuthController.java
-│   ├── EmployeeController.java
-│   ├── HomeController.java
-│   ├── ManageController.java
-│   └── RegistrationController.java
-├── dto/                  # Data Transfer Objects
-├── exceptions/           # Custom runtime exceptions
-├── model/                # JPA entities
-│   └── utils/            # Enums (UserRoleTypes, CarStatus, etc.)
-├── repositories/         # Spring Data JPA repositories
+│   ├── AuthController.java              GET /login
+│   ├── HomeController.java              GET /home
+│   ├── RegistrationController.java      GET/POST /registration/**
+│   ├── ManageController.java            /admin/**, /manager/**
+│   ├── EmployeeController.java          /employee/** (car CRUD)
+│   ├── ProfileController.java           /profile/**
+│   ├── RentalController.java            /rentals/**
+│   └── car/
+│       ├── CarBrowserController.java    /cars/**
+│       ├── CarModelController.java      /employee/addCarModelForm, ...
+│       └── components/
+│           ├── EngineController.java
+│           ├── TransmissionController.java
+│           ├── CarBodyController.java
+│           └── CategoryController.java
+├── dto/
+│   ├── CarDto.java
+│   ├── CarFilterDto.java
+│   ├── CarFormDto.java
+│   ├── UpdateCarDto.java
+│   ├── CarModelFormDto.java
+│   ├── CarModelDropdownDto.java
+│   ├── CarBodyDto.java
+│   ├── CategoryDto.java
+│   ├── EngineDto.java
+│   ├── TransmissionDto.java
+│   ├── RentalDto.java
+│   ├── RentalFormDto.java
+│   ├── WebUserDTO.java
+│   ├── ProfileEditDto.java
+│   ├── UserDto.java
+│   └── CarRentalCompanyDto.java
+├── exceptions/
+│   ├── EngineInUseException.java
+│   ├── TransmissionInUseException.java
+│   ├── CarBodyInUseException.java
+│   ├── CategoryInUseException.java
+│   ├── CarModelInUseException.java
+│   ├── CompanyNotFoundException.java
+│   ├── UserNotFoundException.java
+│   ├── RentalNotFoundException.java
+│   └── RentalNotPendingException.java
+├── model/                               JPA entities
+├── repositories/                        Spring Data JPA interfaces
 └── services/
-    ├── car/              # Car domain services
-    │   ├── CarService.java
-    │   ├── CarSpec.java
-    │   ├── CarModelService.java
-    │   └── components/
-    │       ├── EngineService.java
-    │       └── TransmissionService.java
-    ├── CarRentalCompanyService.java
     ├── CustomUserDetailsService.java
+    ├── UserService.java
     ├── StaffService.java
-    └── UserService.java
+    ├── RentalService.java
+    └── car/
+        ├── CarService.java
+        ├── CarModelService.java
+        ├── CarSpec.java
+        └── components/
+            ├── EngineService.java
+            ├── TransmissionService.java
+            ├── CarBodyService.java
+            └── CategoryService.java
 ```
 
 ---
 
-## Domain Model
+## URL Map
 
-### Entities
-
-| Entity | Description |
-|---|---|
-| `User` | Account with credentials and enabled flag |
-| `UserDetails` | Personal info: first name, last name, email, phone, CNP |
-| `UserRoles` | Role and company assignment for a user |
-| `CarRentalCompany` | Company with address, phone, email, description |
-| `Address` | City, street name and street number |
-| `Car` | Physical vehicle instance — licence plate, color, mileage, status, image |
-| `CarModel` | Make, model, year, engine, transmission, body, category, traction, price/day |
-| `Engine` | Engine type (PETROL, DIESEL, etc.) and horsepower |
-| `Transmission` | Transmission type (MANUAL, AUTOMATIC) and number of gears |
-| `CarBody` | Body type (SEDAN, SUV, etc.) and seat/door count |
-| `Category` | Car category name and description |
-| `Rental` | Rental record linking user, car, dates, locations and status |
-| `RentalLocation` | Pickup/dropoff location |
-
-### User Roles
-
-Roles are stored as the `UserRoleTypes` enum and are **independent** — there is no role hierarchy:
-
-| Role | Description |
-|---|---|
-| `CUSTOMER` | Default role. Can browse available cars and create rentals. |
-| `EMPLOYEE` | Company staff. Can manage company cars and rentals. |
-| `MANAGER` | Company manager. Can manage staff and cars. |
-| `SUPER_ADMIN` | System administrator. Can manage all accounts and companies. |
-
----
-
-## Security
-
-- Authentication via Spring Security form login (`/login`)
-- Method-level authorization with `@PreAuthorize`
-- No role hierarchy — each role has distinct, non-overlapping permissions
-- Passwords encoded with `DelegatingPasswordEncoder`
-
----
-
-## Controllers & Endpoints
-
-### AuthController — `/login`
-
-| Method | Path | Description |
+### Public
+| Method | URL | Description |
 |---|---|---|
-| GET | `/login` | Show login form |
+| GET | `/login` | Login page |
+| GET | `/registration/form` | Register new account |
+| POST | `/registration/process` | Submit registration |
 
-### RegistrationController — `/registration`
-
-| Method | Path | Description |
+### All authenticated users
+| Method | URL | Description |
 |---|---|---|
-| GET | `/registration/form` | Show registration form |
-| POST | `/registration/process` | Process registration |
-| GET | `/registration/confirmation` | Show confirmation page |
+| GET | `/home` | Home page with role-aware navigation |
+| GET | `/profile/editProfile` | Edit own profile |
+| POST | `/profile/processEdit` | Save profile changes |
+| GET | `/cars/chooseDates` | Select rental period |
+| GET | `/cars/carsAvailableToRent` | Browse available cars (filterable) |
+| GET | `/rentals/newRental?carId=&start=&end=` | New rental confirmation form |
+| POST | `/rentals/processRentalForm` | Submit new rental |
+| GET | `/rentals/allRentals?view=client` | Own rental history |
+| POST | `/rentals/cancelRental` | Cancel a PENDING rental |
 
-### AdminController — `/admin` — `SUPER_ADMIN` only
-
-| Method | Path | Description |
+### EMPLOYEE + MANAGER
+| Method | URL | Description |
 |---|---|---|
-| GET | `/admin/staff` | List and search all users |
-| POST | `/admin/staff/assign-role` | Assign role and company to a user |
-| POST | `/admin/staff/toggle-status` | Enable or disable a user account |
-
-### CompanyController — `/admin/rentalsCompanies` — `SUPER_ADMIN` only
-
-| Method | Path | Description |
-|---|---|---|
-| GET | `/admin/rentalsCompanies/show` | List and search all companies |
-| GET | `/admin/rentalsCompanies/addCompany` | Show add company form |
-| POST | `/admin/rentalsCompanies/addCompany` | Save new company |
-| GET | `/admin/rentalsCompanies/updateCompany` | Show update form for a company |
-| POST | `/admin/rentalsCompanies/processUpdateCompany` | Save company changes |
-| POST | `/admin/rentalsCompanies/deleteCompany` | Delete a company |
-
-### ManageController — `/manager` — `MANAGER` only
-
-| Method | Path | Description |
-|---|---|---|
-| GET | `/manager/staff` | List company employees; search users to add |
-| POST | `/manager/staff/add-employee` | Assign EMPLOYEE role to a user |
-| POST | `/manager/staff/remove-employee` | Remove EMPLOYEE role from a user |
-
-### CarBrowserController — `/cars` — `EMPLOYEE`/`MANAGER`/`CUSTOMER`
-
-| Method | Path | Role | Description |
-|---|---|---|---|
-| GET | `/cars/showCars` | EMPLOYEE, MANAGER | List all company cars with filters |
-| GET | `/cars/carsAvailableToRent` | CUSTOMER, EMPLOYEE, MANAGER | List available cars for a given date range with filters |
-
-Both endpoints accept filter parameters via `CarFilterDto` (`brands`, `bodyTypes`, `categories`, `transmissions`, `tractions`, `firstYear`, `lastYear`). `/carsAvailableToRent` also accepts `start` and `end` date parameters (ISO format). Filtering is done at the database level using Spring Data Specifications (`CarSpec`).
-
-### EmployeeController — `/employee` — `EMPLOYEE`/`MANAGER`
-
-| Method | Path | Description |
-|---|---|---|
-| GET | `/employee/addCarsForm` | Show add car form |
+| GET | `/cars/showCars` | Company fleet with filters |
+| GET | `/employee/addCarsForm` | Add car to fleet |
 | POST | `/employee/processCarsForm` | Save new car |
-| GET | `/employee/cars/updateCar?carId=` | Show update form for a car |
-| POST | `/employee/processUpdateCarsForm` | Save car changes |
-| POST | `/employee/cars/toggleStatus` | Toggle car status: AVAILABLE ↔ IN_SERVICE |
-| POST | `/employee/cars/deleteCar` | Delete a car (blocked if active/pending rentals exist) |
+| GET | `/employee/cars/updateCar?carId=` | Edit car details |
+| POST | `/employee/processUpdateCarsForm` | Save car update |
+| POST | `/employee/cars/toggleStatus` | Toggle `AVAILABLE` ↔ `IN_SERVICE` |
+| POST | `/employee/cars/deleteCar` | Delete car |
+| GET | `/employee/addCarModelForm` | Add car model, view/delete existing |
+| POST | `/employee/processCarModelForm` | Save car model |
+| POST | `/employee/deleteCarModel` | Delete car model (blocked if cars reference it) |
+| GET | `/employee/addEngine` | Add engine, view/delete existing |
+| POST | `/employee/processEngineForm` | Save engine |
+| POST | `/employee/deleteEngine` | Delete engine (blocked if car models reference it) |
+| GET | `/employee/addTransmission` | Add transmission, view/delete existing |
+| POST | `/employee/processTransmissionForm` | Save transmission |
+| POST | `/employee/deleteTransmission` | Delete transmission (blocked if car models reference it) |
+| GET | `/employee/addCarBody` | Add car body, view/delete existing |
+| POST | `/employee/processCarBodyForm` | Save car body |
+| POST | `/employee/deleteCarBody` | Delete car body (blocked if car models reference it) |
+| GET | `/employee/addCategory` | Add category, view/delete existing |
+| POST | `/employee/proccesCategoryForm` | Save category |
+| POST | `/employee/deleteCategory` | Delete category (blocked if car models reference it) |
+| GET | `/rentals/allRentals?view=man/emp` | All company rentals |
+| POST | `/rentals/approveRental` | Approve PENDING → ACTIVE |
 
----
-
-## Services
-
-### `UserService`
-Handles user registration and existence checks. Works with `WebUserDTO` — entities are never exposed to controllers.
-
-### `StaffService`
-Handles staff-related operations:
-- Search users by username (all users, or scoped to a company — CUSTOMER + same-company EMPLOYEE)
-- Assign and remove roles with hierarchy validation — no user can assign a role equal to or higher than their own
-- Toggle account enabled status
-- Get employees of a company
-- Resolve company ID from `Authentication`
-- Converts `User` entities to `UserDto` internally via `toDto()`
-
-### `CarRentalCompanyService`
-Handles company CRUD:
-- Search companies by name
-- Add, update and delete companies — manages the associated `Address` entity internally
-- Converts `CarRentalCompany` entities to `CarRentalCompanyDto` internally via `toDto()`
-
-### `CarService`
-Handles all car operations:
-- `getCompanyCars(companyId, filters)` — returns all cars of a company, filtered at DB level
-- `getCarsAvailableForDates(start, end, filters)` — returns AVAILABLE cars free in the given period, filtered at DB level
-- `saveCarFromDto(dto, companyId, imageFile)` — creates a new car, saves uploaded image to disk
-- `updateCar(dto, imageFile)` — updates car fields and optionally replaces image
-- `deleteCar(carId)` — deletes car; throws if active/pending rentals exist
-- `toggleCarStatus(carId)` — toggles AVAILABLE ↔ IN_SERVICE; throws if car is RENTED
-- `toUpdateDto(carId)` — loads car into `UpdateCarDto` for the update form
-- `getAllBrands()`, `getAllCarModels()`, `getAllCategories()` — dropdown data for filters and forms
-- Converts `Car` entities to `CarDto` internally via `toDto()`
-
-### `CarSpec`
-Static specification class — provides Spring Data `Specification<Car>` predicates for DB-level filtering:
-
-| Method | Description |
-|---|---|
-| `ofCompany(company)` | Cars belonging to a given company |
-| `statusAvailable()` | Cars with status AVAILABLE |
-| `freeInPeriod(start, end)` | Cars not rented (non-CANCELLED rental) in the given date range |
-| `withBrands(brands)` | Cars whose model brand is in the list |
-| `withBodyTypes(bodyTypes)` | Cars whose body type is in the list |
-| `withCategories(categories)` | Cars whose category name is in the list |
-| `withTransmissions(transmissions)` | Cars whose transmission type is in the list |
-| `withTractions(tractions)` | Cars whose traction type is in the list |
-| `withMinYear(year)` | Cars whose model year ≥ year |
-| `withMaxYear(year)` | Cars whose model year ≤ year |
-| `fromFilter(filters)` | Combines all `CarFilterDto` fields into a single specification |
-
-### `CustomUserDetailsService`
-Spring Security integration — loads user by username for authentication.
-
----
-
-## DTOs
-
-| DTO | Direction | Description |
+### MANAGER
+| Method | URL | Description |
 |---|---|---|
-| `WebUserDTO` | Request | Registration form data |
-| `UserDto` | Response | Flat user representation for views — no nested entity access |
-| `CarRentalCompanyDto` | Request + Response | Company data for both forms and views |
-| `CarDto` | Response | Flat car representation for views — all fields flattened from Car + CarModel + related entities |
-| `CarFormDto` | Request | Add car form — carModelId, licencePlate, color, mileage |
-| `UpdateCarDto` | Request + Response | Update car form — same fields plus status and display-only model info |
-| `CarFilterDto` | Request | Filter parameters for car listing pages |
+| GET | `/manager/staff` | Manage company staff |
+
+### SUPER_ADMIN
+| Method | URL | Description |
+|---|---|---|
+| GET | `/admin/staff` | Manage all user accounts |
+| GET | `/admin/rentalsCompanies/show` | Manage rental companies |
 
 ---
 
-## Exceptions
-
-| Exception | When thrown |
-|---|---|
-| `UserNotFoundException` | User ID or username does not exist |
-| `CompanyNotFoundException` | Company ID does not exist |
-| `InvalidRoleAssignmentException` | Assigning a role equal to or higher than the assigner's own role |
-| `CompanyRequiredException` | Assigning `EMPLOYEE` or `MANAGER` role without selecting a company |
-
----
-
-## Templates
+## Rental Flow
 
 ```
-templates/
-├── auth/
-│   ├── login.html
-│   ├── registration-form.html
-│   └── registration-confirmation.html
-├── admin/
-│   ├── staff.html                  # Manage all user accounts (SUPER_ADMIN)
-│   ├── show-companies-table.html   # List companies
-│   ├── show-company-form.html      # Add company
-│   └── update-company-form.html    # Edit company
-├── manager/
-│   └── staff.html                  # Manage company employees (MANAGER)
-├── cars/
-│   ├── show-cars.html              # Staff view — all company cars, with filters and actions
-│   ├── available-cars.html         # Client view — available cars for selected dates, with filters and Rent button
-│   ├── add-car-form.html           # Add new car (EMPLOYEE/MANAGER)
-│   ├── update-car-form.html        # Edit car (EMPLOYEE/MANAGER)
-│   ├── add-car-model-form.html
-│   ├── add-engine-form.html
-│   ├── add-category-form.html
-│   └── add-transmission-form.html
-├── rentals/
-│   ├── all-rentals.html
-│   └── new-rental-form.html
-├── profile/
-│   └── edit-profile-form.html
-└── home.html
+Customer                     System
+   │                            │
+   ├─ GET /cars/chooseDates ───►│ min date = first day with available car
+   │◄──────────────────────────┤ choose-dates.html
+   │                            │
+   ├─ GET /cars/carsAvailableToRent?start=&end= ──►│ validate dates
+   │  ┌─ no cars in period? ───────────────────────┤
+   │◄─┘ redirect → chooseDates (error + next window hint)
+   │◄──────────────────────────────────────────────┤ available-cars.html
+   │  (filtered by CarSpec.freeInPeriod + status)  │
+   │                            │
+   ├─ GET /rentals/newRental?carId=&start=&end= ──►│
+   │◄──────────────────────────────────────────────┤ new-rental-form.html
+   │  (fill pickup/dropoff address, options)        │
+   │                            │
+   ├─ POST /rentals/processRentalForm ────────────►│ status = PENDING
+   │◄──────────────────────────────────────────────┤ redirect → allRentals
+   │                            │
+   │          Staff             │
+   ├─ POST /rentals/approveRental ────────────────►│ status = ACTIVE
+   │                            │
+   ├─ POST /rentals/cancelRental ─────────────────►│ status = CANCELLED
 ```
+
+Rental status transitions:
+- `PENDING` → `ACTIVE` (staff approves)
+- `PENDING` or `ACTIVE` → `CANCELLED` (customer cancels own rental; staff cancels any)
+- `ACTIVE` → `COMPLETED` (automatic, when end date passes)
 
 ---
 
-## Database
+## Key Design Decisions
 
-Schema is managed by Flyway. The initial migration (`V1__create_tables.sql`) creates all tables.
+### DTO Pattern
+Entities are **never** passed to Thymeleaf templates. Every controller method maps entities to DTOs before adding them to the model, preventing lazy-loading exceptions and decoupling the view from the persistence layer.
 
-Car images are stored on disk under the directory configured by `app.upload-dir` and served via `/uploads/**`.
+### Rental Completion Scheduler
 
-Connection is configured via environment variables:
+A `@Scheduled(cron = "0 0 0 * * *", zone = "Europe/Bucharest")` job runs at midnight every day and marks all `ACTIVE` rentals whose `endDate < today` as `COMPLETED`. `@EnableScheduling` is enabled on `AppApplication`.
 
-| Variable | Default |
+An `@EventListener(ApplicationReadyEvent.class)` method runs the same logic at every application startup, so rentals that expired while the container was stopped are completed immediately before any request is served.
+
+### Global Exception Handler
+
+`GlobalExceptionHandler` (`@ControllerAdvice`) catches:
+- `UserNotFoundException`, `CompanyNotFoundException`, `RentalNotFoundException` → HTTP 404
+- `IllegalStateException` (e.g. cancelling someone else's rental) → HTTP 403
+- Any other `Exception` → HTTP 500
+
+All cases render `error.html` with the status code and a human-readable message.
+
+### `RentalLocation` Deduplication
+
+`RentalService.buildLocation` no longer creates duplicate addresses. It first checks `AddressRepository.findByCityNameAndStreetNameAndStreetNumber` and `RentalLocationRepository.findByAddressAndCarRentalCompany` before inserting, so repeated rentals to the same address reuse existing rows.
+
+### Date Availability Validation
+
+`chooseDates` computes the first day (from today) where at least one car is available using `CarService.getFirstAvailableDate()` and sets it as the HTML5 `min` on the start date input — no JavaScript required.
+
+When the customer submits a date range, `carsAvailableToRent` first checks if any car is free for the whole period (ignoring filters). If none exist, the controller redirects back to `chooseDates` with a message indicating the next available window:
+
+```
+No cars available from 2026-06-22 to 2026-06-25. Next available window: 2026-06-27 to 29.
+```
+
+`getNextAvailableWindow(from)` finds the first available start date, then extends it forward day by day until no car is free, giving the length of the contiguous available block. If months differ, the full date is shown for the end too.
+
+Only if cars exist (regardless of filters) does the browser proceed to `available-cars.html`. The "No available cars with the selected filters" message on that page therefore means cars exist for the period but none match the active filters.
+
+### `allRentals` View Security
+
+The `/rentals/allRentals` endpoint serves two views: `client` (own rentals) and `emp`/`man` (all company rentals). A `CUSTOMER` who manually appends `?view=emp` is silently redirected to `?view=client` before any staff-only service call is made.
+
+### DB-Level Filtering — `CarSpec`
+`CarSpec` is a static class of `Specification<Car>` predicates composed with `Specification.where().and()`. All filtering (brand, body type, category, transmission, traction, year range, availability) happens at the database level via `JpaSpecificationExecutor`.
+
+```java
+Specification<Car> spec = Specification.where(CarSpec.statusAvailable())
+        .and(CarSpec.freeInPeriod(start, end))
+        .and(CarSpec.fromFilter(filters));
+carRepository.findAll(spec);
+```
+
+### Delete Safety
+Before deleting any shared component (Engine, Transmission, CarBody, Category, CarModel), the service checks for references. If found, it throws a custom exception caught by the controller and shown as a flash warning. The delete is blocked without cascading side-effects.
+
+| Deleted entity | Blocked if... |
 |---|---|
-| `SPRING_DATASOURCE_URL` | `jdbc:mysql://localhost:3307/car_rental` |
-| `SPRING_DATASOURCE_USERNAME` | `car_rental_user` |
-| `SPRING_DATASOURCE_PASSWORD` | *(empty)* |
-| `app.upload-dir` | *(required)* |
+| Engine | any CarModel references it |
+| Transmission | any CarModel references it |
+| CarBody | any CarModel references it |
+| Category | any CarModel references it |
+| CarModel | any Car in the fleet references it |
+
+### Service Decoupling
+`CarModelController` injects 5 services independently. No service calls another service — each owns its own data. This avoids circular dependencies and keeps services independently testable.
+
+### Profile Edit & Session Management
+`UserService.updateProfile()` returns `true` if the username or password changed. When `true`, `ProfileController` clears the `SecurityContext`, invalidates the HTTP session, and redirects to `/login?passwordChanged`, forcing re-authentication with the new credentials.
+
+### Multipart Upload
+Car images are stored on disk under `app.upload-dir` and served under `/uploads/**`. Max size: 10 MB per file.
+
+---
+
+## Configuration
+
+`src/main/resources/application.properties`:
+
+```properties
+spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3307/car_rental}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME:car_rental_user}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:}
+
+spring.jpa.hibernate.ddl-auto=update
+
+app.upload-dir=/uploads
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=15MB
+```
+
+Schema is managed by Hibernate `ddl-auto=update`. Flyway is not used. SQL scripts in `sql/` are for local setup and reference only — they are not run automatically.
+
+| Script | Scop |
+|---|---|
+| `sql/create_tables.sql` | Schema completă (referință) |
+| `sql/demo_data.sql` | Date de demo: companie, conturi, componente, modele, mașini |
+
+**Populare rapidă pentru demo** (pe o bază de date goală, după ce aplicația a creat schema):
+
+```bash
+mysql -u <user> -p car_rental < sql/demo_data.sql
+```
+
+Conturi create de script (parola tuturor: `admin`):
+
+| Username | Rol |
+|---|---|
+| `admin` | SUPER_ADMIN (creat din `data.sql`) |
+| `manager1` | MANAGER @ AutoRent SRL |
+| `employee1` | EMPLOYEE @ AutoRent SRL |
+| `customer1` | CUSTOMER |
+
+Set `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` as environment variables in Docker to override defaults.
+
+---
+
+## Running with Docker
+
+```bash
+docker compose up --build
+```
+
+App available at `http://localhost:8080`.
+
+After code changes:
+
+```bash
+docker compose down
+docker compose up --build
+```

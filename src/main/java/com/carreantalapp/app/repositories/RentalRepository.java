@@ -2,6 +2,7 @@ package com.carreantalapp.app.repositories;
 
 import com.carreantalapp.app.model.Car;
 import com.carreantalapp.app.model.Rental;
+import com.carreantalapp.app.model.User;
 import com.carreantalapp.app.model.utils.RentalStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,4 +22,10 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
 
     @Query("select r from Rental r where r.car.id = :carId and r.status = 'PENDING' and r.startDate <= :cutoff")
     List<Rental> findPendingRentalsForCarBefore(@Param("carId") Long carId, @Param("cutoff") LocalDate cutoff);
+
+    List<Rental> findByUser(User user);
+
+    List<Rental> findByCar_CarRentalCompany_Id(Long companyId);
+
+    List<Rental> findByStatusAndEndDateBefore(RentalStatus status, LocalDate date);
 }

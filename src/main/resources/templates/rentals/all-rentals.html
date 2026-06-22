@@ -110,7 +110,7 @@
                         <td th:text="${rental.totalPrice + ' RON'}"></td>
                         <td>
                             <div class="d-flex flex-column gap-1">
-                                <form th:if="${rental.status.name() == 'PENDING'}"
+                                <form th:if="${rental.status.name() == 'PENDING' or rental.status.name() == 'ACTIVE'}"
                                       th:action="@{/rentals/cancelRental}" method="POST">
                                     <input type="hidden" name="rentalId" th:value="${rental.id}"/>
                                     <input type="hidden" name="view" th:value="${view}"/>
@@ -133,6 +133,7 @@
 
             <a th:href="@{/home}" class="btn btn-secondary mt-3">Back Home</a>
         </div>
+
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"

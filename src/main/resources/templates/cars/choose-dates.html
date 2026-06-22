@@ -17,16 +17,32 @@
                 </div>
                 <div class="card-body">
                     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+                    <div th:if="${not #lists.isEmpty(availableWindows)}" class="mb-3">
+                        <p class="text-muted small mb-2">Available windows — click to browse cars:</p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a th:each="w : ${availableWindows}"
+                               th:href="@{/cars/carsAvailableToRent(start=${w[0]}, end=${w[1]})}"
+                               class="badge bg-success text-decoration-none py-2 px-3 fs-6">
+                                <span th:text="${w[0]}"></span>
+                                <span th:if="${!w[0].equals(w[1])}"
+                                      th:text="' — ' + (${w[0].month == w[1].month and w[0].year == w[1].year} ? ${w[1].dayOfMonth} : ${w[1]})"></span>
+                            </a>
+                        </div>
+                    </div>
+
                     <form method="GET" th:action="@{/cars/carsAvailableToRent}">
                         <div class="mb-3">
                             <label for="start" class="form-label">Start Date *</label>
                             <input id="start" type="date" name="start" class="form-control"
-                                   th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+                                   th:min="${#temporals.format(minStart, 'yyyy-MM-dd')}"
                                    required/>
                         </div>
                         <div class="mb-3">
                             <label for="end" class="form-label">End Date *</label>
-                            <input id="end" type="date" name="end" class="form-control" required/>
+                            <input id="end" type="date" name="end" class="form-control"
+                                   th:min="${#temporals.format(minEnd, 'yyyy-MM-dd')}"
+                                   required/>
                         </div>
                         <div class="d-flex justify-content-between mt-4">
                             <a th:href="@{/home}" class="btn btn-secondary">Back Home</a>
