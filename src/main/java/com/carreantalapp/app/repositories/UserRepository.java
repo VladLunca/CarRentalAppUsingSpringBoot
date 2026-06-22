@@ -18,4 +18,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByUsernameContainingIgnoreCase(String username);
     @Query("select u from User u join u.userRole r where r.carRentalCompany = :company and r.role = :role ")
     List<User> findByCarRentalCompanyAndRole(@Param("company") CarRentalCompany company, @Param("role") UserRoleTypes role);
+
+    @Query("select u from User u join u.userRole r " +
+           "where lower(u.username) like lower(concat('%', :username, '%')) " +
+           "and (r.role = 'CUSTOMER' or (r.role = 'EMPLOYEE' and r.carRentalCompany = :company))")
+    List<User> findSearchableUsersForCompany(@Param("username") String username,
+                                             @Param("company") CarRentalCompany company);
 }

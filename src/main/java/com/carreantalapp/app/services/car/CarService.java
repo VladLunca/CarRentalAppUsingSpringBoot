@@ -1,0 +1,182 @@
+package com.carreantalapp.app.services.car;
+
+import com.carreantalapp.app.dto.CarDto;
+import com.carreantalapp.app.dto.CarFilterDto;
+import com.carreantalapp.app.dto.CarFormDto;
+import com.carreantalapp.app.dto.UpdateCarDto;
+import com.carreantalapp.app.exceptions.CompanyNotFoundException;
+import com.carreantalapp.app.model.*;
+import com.carreantalapp.app.model.utils.CarStatus;
+import com.carreantalapp.app.model.utils.RentalStatus;
+import com.carreantalapp.app.repositories.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+@Service
+public class CarService {
+
+    private final CarRepository carRepository;
+    private final CarRentalCompanyRepository carRentalCompanyRepository;
+    private final CarModelRepository carModelRepository;
+    private final CategoryRepository categoryRepository;
+    private final RentalRepository rentalRepository;
+
+    @Value("${app.upload-dir}")
+    private String uploadDir;
+
+    @Autowired
+    public CarService(CarRepository carRepository,
+                      CarRentalCompanyRepository carRentalCompanyRepository,
+                      CarModelRepository carModelRepository,
+                      CategoryRepository categoryRepository,
+                      RentalRepository rentalRepository) {
+        this.carRepository = carRepository;
+        this.carRentalCompanyRepository = carRentalCompanyRepository;
+        this.carModelRepository = carModelRepository;
+        this.categoryRepository = categoryRepository;
+        this.rentalRepository = rentalRepository;
+    }
+
+    private CarDto toDto(Car car) {
+        CarModel m = car.getCarModel();
+        return new CarDto(
+                car.getId(),
+                m.getBrand(),
+                m.getModel(),
+                m.getYear(),
+                m.getCarBody().getNumberOfSeats(),
+                car.getLicencePlate(),
+                car.getColor(),
+                car.getMileage(),
+                m.getEngine().getHorsePower(),
+                m.getEngine().getEngineType().name(),
+                m.getTransmission().getTransmissionName(),
+                m.getTraction().name(),
+                m.getCategory().getCategoryName(),
+                m.getPricePerDay(),
+                car.getStatus(),
+                car.getImage()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<CarDto> getCompanyCars(Long companyId, CarFilterDto filters) {
+        CarRentalCompany company = carRentalCompanyRepository.findById(companyId)
+                .orElseThrow(() -> new CompanyNotFoundException(companyId));
+        Specification<Car> spec = Specification.where(CarSpec.ofCompany(company))
+                .and(CarSpec.fromFilter(filters));
+        return carRepository.findAll(spec).stream().map(this::toDto).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<CarDto> getCarsAvailableForDates(LocalDate start, LocalDate end, CarFilterDto filters) {
+        Specification<Car> spec = Specification.where(CarSpec.statusAvailable())
+                .and(CarSpec.freeInPeriod(start, end))
+                .and(CarSpec.fromFilter(filters));
+        return carRepository.findAll(spec).stream().map(this::toDto).toList();
+    }
+
+    @Transactional
+    public void saveCarFromDto(CarFormDto dto, Long companyId, MultipartFile imageFile) throws IOException {
+        CarRentalCompany company = carRentalCompanyRepository.findById(companyId)
+                .orElseThrow(() -> new CompanyNotFoundException(companyId));
+        CarModel carModel = carModelRepository.findById(dto.getCarModelId())
+                .orElseThrow(() -> new RuntimeException("Car model not found: " + dto.getCarModelId()));
+        Car car = new Car();
+        car.setCarModel(carModel);
+        car.setCarRentalCompany(company);
+        car.setLicencePlate(dto.getLicencePlate());
+        car.setColor(dto.getColor());
+        car.setMileage(dto.getMileage());
+        if (imageFile != null && !imageFile.isEmpty()) {
+            car.setImage(saveImage(imageFile));
+        }
+        carRepository.save(car);
+    }
+
+    @Transactional
+    public void updateCar(UpdateCarDto dto, MultipartFile imageFile) throws IOException {
+        Car car = carRepository.findById(dto.getCarId())
+                .orElseThrow(() -> new RuntimeException("Car not found: " + dto.getCarId()));
+        car.setLicencePlate(dto.getLicencePlate());
+        car.setColor(dto.getColor());
+        car.setMileage(dto.getMileage());
+        car.setStatus(dto.getStatus());
+        if (imageFile != null && !imageFile.isEmpty()) {
+            car.setImage(saveImage(imageFile));
+        }
+        carRepository.save(car);
+    }
+
+    @Transactional
+    public void deleteCar(Long carId) {
+        Car car = carRepository.findById(carId)
+                .orElseThrow(() -> new RuntimeException("Car not found: " + carId));
+        if (rentalRepository.existsByCarAndStatusIn(car, List.of(RentalStatus.PENDING, RentalStatus.ACTIVE))) {
+            throw new RuntimeException("Cannot delete a car with active or pending rentals");
+        }
+        carRepository.delete(car);
+    }
+
+    @Transactional
+    public void toggleCarStatus(Long carId) {
+        Car car = carRepository.findById(carId)
+                .orElseThrow(() -> new RuntimeException("Car not found: " + carId));
+        if (car.getStatus() == CarStatus.RENTED) {
+            throw new RuntimeException("Cannot toggle status of a rented car");
+        }
+        car.setStatus(car.getStatus() == CarStatus.AVAILABLE ? CarStatus.IN_SERVICE : CarStatus.AVAILABLE);
+        carRepository.save(car);
+    }
+
+    @Transactional(readOnly = true)
+    public UpdateCarDto toUpdateDto(Long carId) {
+        Car car = carRepository.findById(carId)
+                .orElseThrow(() -> new RuntimeException("Car not found: " + carId));
+        UpdateCarDto dto = new UpdateCarDto();
+        dto.setCarId(car.getId());
+        dto.setLicencePlate(car.getLicencePlate());
+        dto.setColor(car.getColor());
+        dto.setMileage(car.getMileage());
+        dto.setStatus(car.getStatus());
+        dto.setCarModelBrand(car.getCarModel().getBrand());
+        dto.setCarModelModel(car.getCarModel().getModel());
+        dto.setCarModelYear(car.getCarModel().getYear());
+        return dto;
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> getAllBrands() {
+        return carModelRepository.findDistinctBrands();
+    }
+
+    @Transactional(readOnly = true)
+    public List<CarModel> getAllCarModels() {
+        return carModelRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Category> getAllCategories() {
+        return categoryRepository.findAll();
+    }
+
+    private String saveImage(MultipartFile imageFile) throws IOException {
+        String filename = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
+        Path dest = Paths.get(uploadDir).resolve(filename);
+        Files.createDirectories(dest.getParent());
+        imageFile.transferTo(dest.toFile());
+        return "/uploads/" + filename;
+    }
+}

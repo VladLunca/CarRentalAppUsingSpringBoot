@@ -13,7 +13,7 @@
         <div class="card border-info">
             <div class="card-header bg-info text-white">
                 <h4>Update Car</h4>
-                <small th:text="${car.carModel.brand + ' ' + car.carModel.model + ' (' + car.carModel.year + ')'}"></small>
+                <small th:text="${car.carModelBrand + ' ' + car.carModelModel + ' (' + car.carModelYear + ')'}"></small>
             </div>
             <div class="card-body">
                 <form action="#" th:action="@{/employee/processUpdateCarsForm}"

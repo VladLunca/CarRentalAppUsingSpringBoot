@@ -5,6 +5,7 @@ import com.carreantalapp.app.exceptions.CompanyNotFoundException;
 import com.carreantalapp.app.exceptions.CompanyRequiredException;
 import com.carreantalapp.app.exceptions.InvalidRoleAssignmentException;
 import com.carreantalapp.app.exceptions.UserNotFoundException;
+import com.carreantalapp.app.model.CarRentalCompany;
 import com.carreantalapp.app.model.User;
 import com.carreantalapp.app.model.utils.UserRoleTypes;
 import com.carreantalapp.app.repositories.CarRentalCompanyRepository;
@@ -78,12 +79,13 @@ public class StaffService {
             user.getUserRole().setCarRentalCompany(null);
         }
     }
+
+    @Transactional(readOnly = true)
     public List<UserDto> getEmployeesOfCompany(Long carRentalCompanyId) {
         return userRepository.findByCarRentalCompanyAndRole(carRentalCompanyRepository.findById(carRentalCompanyId)
                         .orElseThrow(() -> new CompanyNotFoundException(carRentalCompanyId)), UserRoleTypes.EMPLOYEE)
                 .stream().map(this::toDto).toList();
     }
-
 
     @Transactional
     public void toggleAccountStatus(Long userId) {
@@ -91,10 +93,35 @@ public class StaffService {
         user.setEnabled(!user.isEnabled());
     }
 
-
     public UserRoleTypes getRoleFromAuthentication(Authentication auth) {
         String authority = auth.getAuthorities().iterator().next().getAuthority();
         if (authority == null) throw new InvalidRoleAssignmentException("No role found for current user");
         return UserRoleTypes.valueOf(authority.replace("ROLE_", ""));
     }
+
+    public Long getCarRentalCompanyIdByUserId(Authentication  auth ) {
+        User u = userRepository.findByUsername(auth.getName()).orElseThrow(() -> new UserNotFoundException(auth.getName()));
+        if(u.getUserRole().getRole().equals(UserRoleTypes.CUSTOMER) || u.getUserRole().getRole().equals(UserRoleTypes.SUPER_ADMIN)) {
+            return null;
+        }
+        return  u.getUserRole().getCarRentalCompany().getId();
+    }
+    public String getCompanyNameById(Long companyId) {
+        return carRentalCompanyRepository.findById(companyId)
+                .orElseThrow(() -> new CompanyNotFoundException(companyId))
+                .getName();
+    }
+    @Transactional(readOnly = true)
+    public List<UserDto> searchUsersForCompany(String searchTerm, Long companyId) {
+        if (searchTerm == null || searchTerm.isBlank())
+            return List.of();
+        CarRentalCompany company = carRentalCompanyRepository.findById(companyId)
+                .orElseThrow(() -> new CompanyNotFoundException(companyId));
+        return userRepository.findSearchableUsersForCompany(searchTerm, company)
+                .stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+
 }
