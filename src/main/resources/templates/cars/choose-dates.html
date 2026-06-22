@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Choose Rental Dates</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous"/>
+</head>
+<body>
+<div class="container" style="margin-top: 80px;">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">Choose Rental Period</h4>
+                </div>
+                <div class="card-body">
+                    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+                    <form method="GET" th:action="@{/cars/carsAvailableToRent}">
+                        <div class="mb-3">
+                            <label for="start" class="form-label">Start Date *</label>
+                            <input id="start" type="date" name="start" class="form-control"
+                                   th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}"
+                                   required/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="end" class="form-label">End Date *</label>
+                            <input id="end" type="date" name="end" class="form-control" required/>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <a th:href="@{/home}" class="btn btn-secondary">Back Home</a>
+                            <button type="submit" class="btn btn-success">Search Cars</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

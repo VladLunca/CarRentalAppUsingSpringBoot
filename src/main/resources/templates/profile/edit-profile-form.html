@@ -1,87 +1,82 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Edit Profile Page</title>
+    <title>Edit Profile</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Register</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous"/>
 </head>
 <body>
-<div class="container">
-    <div class="card shadow-sm">
-        <div class="card border-info">
-            <div class="card-header bg-info text-white">
-                <h4>Edit Profile</h4>
-            </div>
-            <div th:if="${error}" class="alert alert-danger" role="alert">
-                <span th:text="${error}"></span>
-            </div>
-            <div class="card-body">
-                <div class="card-text">
-                    <form action="#" th:action="@{/profile/processEdit}"
-                          th:object="${webuser}"
-                          method="POST" class="form-horizontal">
-                        <input type="hidden" name="_method" value="put"/>
-                        <div class="col-md-6 mb-3">
-                            <label for="username" class="form-label">Username: </label>
-                            <input id="username" type="text" th:field="*{userName}" th:default="*{userName}"
-                                   class="form-control"/>
+<div class="container" style="margin-top: 50px;">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">Edit Profile</h4>
+                </div>
+                <div class="card-body">
+
+                    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+                    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+                    <form th:action="@{/profile/processEdit}" th:object="${webuser}" method="POST">
+                        <input type="hidden" th:field="*{cnp}"/>
+
+                        <div class="mb-3">
+                            <label for="userName" class="form-label">Username</label>
+                            <input id="userName" type="text" th:field="*{userName}" class="form-control" required/>
                             <div class="text-danger" th:if="${#fields.hasErrors('userName')}" th:errors="*{userName}"></div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="password" class="form-label">Password: </label>
-                            <input id="password" type="password" th:field="*{password}" th:value="*{password}" th:placeholder="............."
-                                   class="form-control" required/>
-                            <div class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
 
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="firstName" class="form-label">First Name: </label>
-                            <input id="firstName" type="text" th:field="*{firstName}"  th:default="*{firstName}"
-                                   class="form-control"/>
+                        <div class="mb-3">
+                            <label for="firstName" class="form-label">First Name</label>
+                            <input id="firstName" type="text" th:field="*{firstName}" class="form-control" required/>
                             <div class="text-danger" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
-
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="lastName" class="form-label">Last Name: </label>
-                            <input id="lastName" type="text" th:field="*{lastName}"  th:default="*{lastName}"
-                                   class="form-control"/>
+
+                        <div class="mb-3">
+                            <label for="lastName" class="form-label">Last Name</label>
+                            <input id="lastName" type="text" th:field="*{lastName}" class="form-control" required/>
                             <div class="text-danger" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
-
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email: </label>
-                            <input id ="email" type="text" th:field="*{email}"  th:default="*{email}"
-                                   class="form-control"/>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input id="email" type="email" th:field="*{email}" class="form-control" required/>
                             <div class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="phone" class="form-label">Phone Number: </label>
-                            <input id="phone" type="text" th:field="*{phoneNumber}"  th:default="*{phoneNumber}"
-                                   class="form-control"/>
+
+                        <div class="mb-3">
+                            <label for="phoneNumber" class="form-label">Phone Number</label>
+                            <input id="phoneNumber" type="text" th:field="*{phoneNumber}" class="form-control" required/>
                             <div class="text-danger" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></div>
-
                         </div>
 
-                        <input type="hidden" th:field="*{cnp}"  th:default="*{cnp}"
-                               class="form-control"/>
-                        <div class="text-danger" th:if="${#fields.hasErrors('cnp')}" th:errors="*{cnp}"></div>
+                        <hr/>
+                        <p class="text-muted small">Leave "New Password" blank to keep your current password.</p>
+
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">Current Password *</label>
+                            <input id="currentPassword" type="password" th:field="*{currentPassword}"
+                                   placeholder="Required to save changes" class="form-control" required/>
+                            <div class="text-danger" th:if="${#fields.hasErrors('currentPassword')}" th:errors="*{currentPassword}"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">New Password</label>
+                            <input id="newPassword" type="password" th:field="*{newPassword}"
+                                   placeholder="Leave blank to keep current" class="form-control"/>
+                            <div class="text-danger" th:if="${#fields.hasErrors('newPassword')}" th:errors="*{newPassword}"></div>
+                        </div>
+
                         <div class="d-flex justify-content-between mt-4">
-                            <a th:href="@{/static}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Back home
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-plus-circle"></i> Edit
-                            </button>
+                            <a th:href="@{/home}" class="btn btn-secondary">Back Home</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
                         </div>
                     </form>
                 </div>
             </div>
-        </div>
         </div>
     </div>
 </div>

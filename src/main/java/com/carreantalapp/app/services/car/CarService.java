@@ -1,9 +1,7 @@
 package com.carreantalapp.app.services.car;
 
-import com.carreantalapp.app.dto.CarDto;
-import com.carreantalapp.app.dto.CarFilterDto;
-import com.carreantalapp.app.dto.CarFormDto;
-import com.carreantalapp.app.dto.UpdateCarDto;
+import com.carreantalapp.app.dto.*;
+
 import com.carreantalapp.app.exceptions.CompanyNotFoundException;
 import com.carreantalapp.app.model.*;
 import com.carreantalapp.app.model.utils.CarStatus;
@@ -163,13 +161,22 @@ public class CarService {
     }
 
     @Transactional(readOnly = true)
-    public List<CarModel> getAllCarModels() {
-        return carModelRepository.findAll();
+    public List<CarModelDropdownDto> getAllCarModels() {
+        return carModelRepository.findAll().stream()
+                .map(m -> new CarModelDropdownDto(m.getCarModelId(), m.getBrand(), m.getModel(), m.getYear(), m.getPricePerDay()))
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<CategoryDto> getAllCategories() {
+        return categoryRepository.findAll().stream()
+                .map(c -> {
+                    CategoryDto dto = new CategoryDto();
+                    dto.setId(c.getId());
+                    dto.setCategoryName(c.getCategoryName());
+                    return dto;
+                })
+                .toList();
     }
 
     private String saveImage(MultipartFile imageFile) throws IOException {

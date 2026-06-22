@@ -2,7 +2,6 @@ package com.carreantalapp.app.model.utils;
 public enum TractionTypes {
     FWD("FWD"),
     RWD("RWD"),
-    FOUR_WD("4WD"),
     AWD("AWD");
 
     private final String value;

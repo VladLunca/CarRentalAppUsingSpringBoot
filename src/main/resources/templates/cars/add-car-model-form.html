@@ -80,12 +80,16 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="carBody" class="form-label">Car Body *</label>
-                                <select id="carBody" th:field="*{carBodyId}" class="form-control" required>
-                                    <option value="">Select Car Body</option>
-                                    <option th:each="carBody : ${carBodies}"
-                                            th:value="${carBody.carBodyId}"
-                                            th:text="${carBody.name}"></option>
-                                </select>
+                                <div class="d-flex gap-2">
+                                    <select id="carBody" th:field="*{carBodyId}" class="form-control" required>
+                                        <option value="">Select Car Body</option>
+                                        <option th:each="carBody : ${carBodies}"
+                                                th:value="${carBody.id}"
+                                                th:text="${carBody.name + ' (' + carBody.numberOfSeats + ' seats)'}"></option>
+                                    </select>
+                                    <a th:href="@{/employee/addCarBody}"
+                                       class="btn btn-outline-primary btn-sm" title="Add New Car Body">+</a>
+                                </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="category" class="form-label">Car Category *</label>
@@ -93,7 +97,7 @@
                                     <select id="category" th:field="*{categoryId}" class="form-control" required>
                                         <option value="">Select Category</option>
                                         <option th:each="category : ${categories}"
-                                                th:value="${category.categoryId}"
+                                                th:value="${category.id}"
                                                 th:text="${category.categoryName}"></option>
                                     </select>
                                     <a th:href="@{/employee/addCategory}"
@@ -107,10 +111,8 @@
                                 <label for="traction" class="form-label">Traction *</label>
                                 <select id="traction" th:field="*{traction}" class="form-control" required>
                                     <option value="">Select Traction</option>
-                                    <option value="FWD">FWD</option>
-                                    <option value="RWD">RWD</option>
-                                    <option value="4WD">4WD</option>
-                                    <option value="AWD">AWD</option>
+                                    <option th:each="t : ${tractionTypes}"
+                                            th:value="${t}" th:text="${t}"></option>
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">
@@ -132,6 +134,35 @@
                             <button type="submit" class="btn btn-primary">Add Car Model</button>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            <!-- Existing car models -->
+            <div class="card mt-3 border-info">
+                <div class="card-header bg-info text-white">Existing Car Models</div>
+                <div class="card-body p-0">
+                    <div th:if="${warning}" class="alert alert-warning m-3" th:text="${warning}"></div>
+                    <div th:if="${#lists.isEmpty(carModels)}" class="p-3 text-muted">No car models added yet.</div>
+                    <table th:if="${!#lists.isEmpty(carModels)}" class="table table-sm table-striped mb-0">
+                        <thead class="table-info">
+                            <tr><th>Brand</th><th>Model</th><th>Year</th><th>Price/Day</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="cm : ${carModels}">
+                                <td th:text="${cm.brand}"></td>
+                                <td th:text="${cm.model}"></td>
+                                <td th:text="${cm.year}"></td>
+                                <td th:text="${cm.pricePerDay + ' RON'}"></td>
+                                <td>
+                                    <form th:action="@{/employee/deleteCarModel}" method="POST">
+                                        <input type="hidden" name="carModelId" th:value="${cm.carModelId}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Delete this car model?')">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

@@ -20,4 +20,7 @@ public interface CarRepository extends JpaRepository<Car, Long>, JpaSpecificatio
 
     @Query("select c from Car c where c.status = 'AVAILABLE' and c.id not in :rentedIds")
     List<Car> findAvailableExcluding(@Param("rentedIds") List<Long> rentedIds);
+
+    @Query("select count(c) > 0 from Car c where c.carModel.carModelId = :carModelId")
+    boolean existsByCarModelId(@Param("carModelId") Long carModelId);
 }

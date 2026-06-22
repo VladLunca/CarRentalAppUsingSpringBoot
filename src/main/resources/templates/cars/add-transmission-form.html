@@ -8,42 +8,73 @@
           integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous"/>
 </head>
 <body>
-<div class="container">
-    <div style="margin-top: 50px;" class="col-md-3 col-md-offset-2 col-sm-6 col-sm-offset-2">
-        <div class="card border-info">
-            <div class="card-header bg-info text-white">
-                <h3>Add Transmission</h3>
-            </div>
-            <div class="card-body">
-                <form action="#" th:action="@{/employee/processTransmissionForm}"
-                      th:object="${transmission}"
-                      method="POST">
-                    <div class="mb-3">
-                        <label for="transmissionName" class="form-label">Transmission Name *</label>
-                        <input id="transmissionName" type="text" th:field="*{transmissionName}"
-                               placeholder="e.g. 6-speed manual" class="form-control" required/>
-                    </div>
-                    <div class="mb-3">
-                        <label for="transmissionType" class="form-label">Transmission Type *</label>
-                        <select id="transmissionType" th:field="*{transmissionType}" class="form-control" required>
-                            <option value="">Select Transmission Type</option>
-                            <option th:each="type : ${transmissionTypes}"
-                                    th:value="${type}"
-                                    th:text="${type}"></option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="numberOfGears" class="form-label">Number of Gears *</label>
-                        <input id="numberOfGears" type="number" th:field="*{numberOfGears}"
-                               placeholder="e.g. 6" min="1" class="form-control" required/>
-                    </div>
-                    <div class="d-flex justify-content-between mt-4">
-                        <a th:href="@{/employee/addCarsForm}" class="btn btn-secondary">Back to Add Car</a>
-                        <button type="submit" class="btn btn-primary">Add Transmission</button>
-                    </div>
-                </form>
+<div class="container" style="margin-top: 50px;">
+    <div class="row g-4">
+
+        <!-- Form -->
+        <div class="col-md-4">
+            <div class="card border-info h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Add Transmission</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/employee/processTransmissionForm}" th:object="${transmission}" method="POST">
+                        <div class="mb-3">
+                            <label for="transmissionName" class="form-label">Transmission Name *</label>
+                            <input id="transmissionName" type="text" th:field="*{transmissionName}"
+                                   placeholder="e.g. 6-speed manual" class="form-control" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label for="transmissionType" class="form-label">Transmission Type *</label>
+                            <select id="transmissionType" th:field="*{transmissionType}" class="form-control" required>
+                                <option value="">Select Transmission Type</option>
+                                <option th:each="type : ${transmissionTypes}" th:value="${type}" th:text="${type}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="numberOfGears" class="form-label">Number of Gears *</label>
+                            <input id="numberOfGears" type="number" th:field="*{numberOfGears}"
+                                   placeholder="e.g. 6" min="1" class="form-control" required/>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4">
+                            <a th:href="@{/employee/addCarModelForm}" class="btn btn-secondary">Back to Car Model</a>
+                            <button type="submit" class="btn btn-primary">Add Transmission</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
+
+        <!-- Existing transmissions table -->
+        <div class="col-md-8">
+            <div class="card border-info h-100">
+                <div class="card-header bg-info text-white">Existing Transmissions</div>
+                <div class="card-body p-0">
+                    <div th:if="${warning}" class="alert alert-warning m-3" th:text="${warning}"></div>
+                    <div th:if="${#lists.isEmpty(transmissions)}" class="p-3 text-muted">No transmissions added yet.</div>
+                    <table th:if="${!#lists.isEmpty(transmissions)}" class="table table-sm table-striped mb-0">
+                        <thead class="table-info">
+                            <tr><th>Name</th><th>Type</th><th>Gears</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="t : ${transmissions}">
+                                <td th:text="${t.transmissionName}"></td>
+                                <td th:text="${t.transmissionType}"></td>
+                                <td th:text="${t.numberOfGears}"></td>
+                                <td>
+                                    <form th:action="@{/employee/deleteTransmission}" method="POST">
+                                        <input type="hidden" name="transmissionId" th:value="${t.transmissionId}"/>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Delete this transmission?')">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 </body>
