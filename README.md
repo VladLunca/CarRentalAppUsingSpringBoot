@@ -1,4 +1,4 @@
-# Car Rental App — v2
+# Car Rental App 
 
 Spring Boot web application for managing a car rental business. Supports multiple companies, roles, car fleet management, and customer rentals.
 
