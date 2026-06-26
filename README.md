@@ -1,4 +1,4 @@
-# Car Rental App — v2
+# Car Rental App 
 
 Spring Boot web application for managing a car rental business. Supports multiple companies, roles, car fleet management, and customer rentals.
 
@@ -493,7 +493,7 @@ Before deleting any shared component (Engine, Transmission, CarBody, Category, C
 | Transmission | any CarModel references it |
 | CarBody | any CarModel references it |
 | Category | any CarModel references it |
-| CarModel | any Car in the fleet references it |
+| CarModel | any Car in the aplication fleet references it |
 
 ### Service Decoupling
 `CarModelController` injects 5 services independently. No service calls another service — each owns its own data. This avoids circular dependencies and keeps services independently testable.
@@ -522,14 +522,15 @@ spring.servlet.multipart.max-file-size=10MB
 spring.servlet.multipart.max-request-size=15MB
 ```
 
-Schema is managed by Hibernate `ddl-auto=update`. Flyway is not used. SQL scripts in `sql/` are for local setup and reference only — they are not run automatically.
-
-| Script | Scop |
+| Script | Purpose |
 |---|---|
-| `sql/create_tables.sql` | Schema completă (referință) |
-| `sql/demo_data.sql` | Date de demo: companie, conturi, componente, modele, mașini |
+| `sql/create_tables.sql` | Full schema definition (reference only) |
+| `sql/demo_data.sql` | Demo dataset: company, accounts, components, car models, and vehicles |
 
-**Populare rapidă pentru demo** (pe o bază de date goală, după ce aplicația a creat schema):
+**Automatic demo data initialization (startup behavior)**  
+The `demo_data.sql` script is executed automatically at application startup to populate the database when it is empty.
+
+**Quick population for demo** (use on an empty database after Hibernate has created the schema):
 
 ```bash
 mysql -u <user> -p car_rental < sql/demo_data.sql
