@@ -12,7 +12,7 @@ The application covers two main domains:
 
 **Fleet management** — Employees and managers manage the company's car fleet. Car models are built from reusable components (engine, transmission, car body, category). Individual cars reference a model and belong to a company. Cars can be added, updated, toggled between available/in-service, and deleted. Component pages show existing entries alongside the add form and prevent deletion of anything still referenced.
 
-**Rentals** — Customers browse available cars for a chosen date range, filtered by brand, body type, category, transmission, traction type, and year. They submit a rental request with pickup/dropoff addresses and optional extras (driver, child seat). Rentals start as `PENDING` and must be approved by staff to become `ACTIVE`. Customers can cancel their own pending rentals; staff can cancel any.
+**Rentals** — Customers browse available cars for a chosen date range, filtered by brand, body type, category, transmission, traction type, and year. They submit a rental request with pickup/dropoff addresses and optional extras (driver, child seat). When a request is submitted, the server re-validates the booking (dates, car status, and overlap with existing rentals) before persisting it, so a tampered or stale form cannot double-book a car. Rentals start as `PENDING` and must be approved by staff to become `ACTIVE`. Customers can cancel their own `PENDING`/`ACTIVE` rentals; staff can approve and cancel only rentals belonging to their own company.
 
 **Account management** — Users register, log in, and edit their own profile (name, email, phone, username, password). Managers manage their company's employees. A super-admin manages all accounts and companies platform-wide.
 
@@ -98,7 +98,7 @@ classDiagram
         +getRentalsForUser(username, filters) List~RentalDto~
         +getRentalsForCompany(companyId, filters) List~RentalDto~
         +createRental(username, dto)
-        +approveRental(rentalId)
+        +approveRental(rentalId, username)
         +cancelRental(rentalId, username)
     }
 
@@ -125,9 +125,9 @@ classDiagram
         +getFirstAvailableDateFrom(from) LocalDate
         +getNextAvailableWindow(from) LocalDate[]
         +saveCarFromDto(dto, companyId, image)
-        +updateCar(dto, image)
-        +deleteCar(carId)
-        +toggleCarStatus(carId)
+        +updateCar(dto, companyId, image)
+        +deleteCar(carId, companyId)
+        +toggleCarStatus(carId, companyId)
     }
 
     class CarModelController {
@@ -156,7 +156,7 @@ classDiagram
         +getCarRentalCompanyIdByUserId(auth) Long
         +getRoleFromAuthentication(auth) UserRoleTypes
         +addRoleToUserByUserId(userId, role, companyId, assignerRole)
-        +removeRoleFromUserByUserId(userId)
+        +removeRoleFromUserByUserId(userId, companyId)
         +toggleAccountStatus(userId)
     }
 
@@ -404,8 +404,8 @@ Customer                     System
 ```
 
 Rental status transitions:
-- `PENDING` → `ACTIVE` (staff approves)
-- `PENDING` or `ACTIVE` → `CANCELLED` (customer cancels own rental; staff cancels any)
+- `PENDING` → `ACTIVE` (staff of the owning company approves)
+- `PENDING` or `ACTIVE` → `CANCELLED` (customer cancels own rental; staff cancels rentals of their own company)
 - `ACTIVE` → `COMPLETED` (automatic, when end date passes)
 
 ---
@@ -425,7 +425,7 @@ An `@EventListener(ApplicationReadyEvent.class)` method runs the same logic at e
 
 `GlobalExceptionHandler` (`@ControllerAdvice`) catches:
 - `UserNotFoundException`, `CompanyNotFoundException`, `RentalNotFoundException` → HTTP 404
-- `IllegalStateException` (e.g. cancelling someone else's rental) → HTTP 403
+- `IllegalStateException` (e.g. cancelling someone else's rental, or acting on another company's rental/car/staff) → HTTP 403
 - Any other `Exception` → HTTP 500
 
 All cases render `error.html` with the status code and a human-readable message.
@@ -447,6 +447,28 @@ No cars available from 2026-06-22 to 2026-06-25. Next available window: 2026-06-
 `getNextAvailableWindow(from)` finds the first available start date, then extends it forward day by day until no car is free, giving the length of the contiguous available block. If months differ, the full date is shown for the end too.
 
 Only if cars exist (regardless of filters) does the browser proceed to `available-cars.html`. The "No available cars with the selected filters" message on that page therefore means cars exist for the period but none match the active filters.
+
+### Booking Integrity Validation
+
+Availability is filtered at browse time, but the browse result can be stale or the form can be replayed/tampered with a different `carId` or date range. To prevent double-booking and bookings on unavailable cars, `RentalService.createRental` re-validates server-side before persisting:
+
+- start/end dates are present, start is not in the past, and end is after start;
+- the car's status is `AVAILABLE`;
+- no non-cancelled rental overlaps the requested period (`RentalRepository.existsOverlappingRental`).
+
+Any failed check throws an exception that the controller surfaces back on the form.
+
+### Company-Scoped Authorization
+
+`@PreAuthorize` guards *which roles* may reach an endpoint, but not *which records* they may act on. Because IDs travel in request parameters, an `EMPLOYEE`/`MANAGER` of one company could otherwise act on another company's records by guessing an ID. Every staff write therefore re-checks that the target belongs to the caller's own company (derived from `StaffService.getCarRentalCompanyIdByUserId(auth)`), throwing `IllegalStateException` (→ HTTP 403) on mismatch:
+
+| Operation | Ownership check |
+|---|---|
+| `RentalService.approveRental` / `cancelRental` (staff) | rental's car company == caller's company |
+| `CarService.updateCar` / `deleteCar` / `toggleCarStatus` / `toUpdateDto` | car's company == caller's company |
+| `StaffService.removeRoleFromUserByUserId` | target employee's company == caller's company |
+
+Customers remain restricted to their own rentals; `SUPER_ADMIN` is unscoped by design.
 
 ### `allRentals` View Security
 

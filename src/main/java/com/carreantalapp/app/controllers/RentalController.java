@@ -150,9 +150,10 @@ public class RentalController {
     public String approveRental(
             @RequestParam Long rentalId,
             @RequestParam(defaultValue = "emp") String view,
+            Authentication auth,
             RedirectAttributes redirectAttributes) {
         try {
-            rentalService.approveRental(rentalId);
+            rentalService.approveRental(rentalId, auth.getName());
             redirectAttributes.addFlashAttribute("success", "Rental approved.");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("warning", e.getMessage());

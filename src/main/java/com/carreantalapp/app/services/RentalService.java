@@ -6,6 +6,7 @@ import com.carreantalapp.app.exceptions.RentalNotFoundException;
 import com.carreantalapp.app.exceptions.RentalNotPendingException;
 import com.carreantalapp.app.exceptions.UserNotFoundException;
 import com.carreantalapp.app.model.*;
+import com.carreantalapp.app.model.utils.CarStatus;
 import com.carreantalapp.app.model.utils.RentalStatus;
 import com.carreantalapp.app.model.utils.UserRoleTypes;
 import com.carreantalapp.app.repositories.*;
@@ -112,6 +113,17 @@ public class RentalService {
         Car car = carRepository.findById(dto.getCarId())
                 .orElseThrow(() -> new RuntimeException("Car not found: " + dto.getCarId()));
 
+        if (dto.getStartDate() == null || dto.getEndDate() == null)
+            throw new IllegalArgumentException("Start and end dates are required.");
+        if (dto.getStartDate().isBefore(LocalDate.now()))
+            throw new IllegalArgumentException("Start date cannot be in the past.");
+        if (!dto.getEndDate().isAfter(dto.getStartDate()))
+            throw new IllegalArgumentException("End date must be after start date.");
+        if (car.getStatus() != CarStatus.AVAILABLE)
+            throw new IllegalStateException("This car is not available for rent.");
+        if (rentalRepository.existsOverlappingRental(car.getId(), dto.getStartDate(), dto.getEndDate()))
+            throw new IllegalStateException("This car is already booked for the selected dates.");
+
         RentalLocation pickup = buildLocation(
                 dto.getPickupCity(), dto.getPickupStreet(), dto.getPickupStreetNumber(),
                 car.getCarRentalCompany());
@@ -153,9 +165,12 @@ public class RentalService {
     }
 
     @Transactional
-    public void approveRental(Long rentalId) {
+    public void approveRental(Long rentalId, String username) {
         Rental rental = rentalRepository.findById(rentalId)
                 .orElseThrow(() -> new RentalNotFoundException(rentalId));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UserNotFoundException(username));
+        verifyStaffOwnsRental(user, rental);
         if (rental.getStatus() != RentalStatus.PENDING)
             throw new RentalNotPendingException("approve");
         rental.setStatus(RentalStatus.ACTIVE);
@@ -169,10 +184,21 @@ public class RentalService {
             throw new RentalNotPendingException("cancel");
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(username));
-        if (user.getUserRole().getRole() == UserRoleTypes.CUSTOMER
-                && !rental.getUser().getUsername().equals(username))
-            throw new IllegalStateException("You can only cancel your own rentals.");
+        UserRoleTypes role = user.getUserRole().getRole();
+        if (role == UserRoleTypes.CUSTOMER) {
+            if (!rental.getUser().getUsername().equals(username))
+                throw new IllegalStateException("You can only cancel your own rentals.");
+        } else if (role == UserRoleTypes.EMPLOYEE || role == UserRoleTypes.MANAGER) {
+            verifyStaffOwnsRental(user, rental);
+        }
         rental.setStatus(RentalStatus.CANCELLED);
+    }
+
+    private void verifyStaffOwnsRental(User user, Rental rental) {
+        CarRentalCompany company = user.getUserRole().getCarRentalCompany();
+        Long rentalCompanyId = rental.getCar().getCarRentalCompany().getId();
+        if (company == null || !company.getId().equals(rentalCompanyId))
+            throw new IllegalStateException("You can only manage rentals of your own company.");
     }
 
     @Transactional(readOnly = true)

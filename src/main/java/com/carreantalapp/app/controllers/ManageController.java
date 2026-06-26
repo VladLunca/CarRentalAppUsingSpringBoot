@@ -48,8 +48,13 @@ public class ManageController {
         return "redirect:/manager/staff";
     }
     @PostMapping("/staff/remove-employee")
-    public String removeEmployee(@RequestParam Long userId) {
-        staffService.removeRoleFromUserByUserId(userId);
+    public String removeEmployee(@RequestParam Long userId, Authentication auth, RedirectAttributes redirectAttributes) {
+        try {
+            Long companyId = staffService.getCarRentalCompanyIdByUserId(auth);
+            staffService.removeRoleFromUserByUserId(userId, companyId);
+        } catch (InvalidRoleAssignmentException e) {
+            redirectAttributes.addFlashAttribute("warning", e.getMessage());
+        }
         return "redirect:/manager/staff";
     }
 

@@ -52,26 +52,29 @@ public class EmployeeController {
     }
 
     @GetMapping("/cars/updateCar")
-    public String updateCarForm(@RequestParam Long carId, Model model) {
-        model.addAttribute("car", carService.toUpdateDto(carId));
+    public String updateCarForm(@RequestParam Long carId, Authentication auth, Model model) {
+        Long companyId = staffService.getCarRentalCompanyIdByUserId(auth);
+        model.addAttribute("car", carService.toUpdateDto(carId, companyId));
         return "cars/update-car-form";
     }
 
     @PostMapping("/processUpdateCarsForm")
     public String processUpdateCarsForm(@Valid @ModelAttribute("car") UpdateCarDto dto, BindingResult result,
                                         @RequestParam("imageFile") MultipartFile imageFile,
-                                        Model model) throws IOException {
+                                        Authentication auth, Model model) throws IOException {
         if (result.hasErrors()) {
             return "cars/update-car-form";
         }
-        carService.updateCar(dto, imageFile);
+        Long companyId = staffService.getCarRentalCompanyIdByUserId(auth);
+        carService.updateCar(dto, companyId, imageFile);
         return "redirect:/cars/showCars";
     }
 
     @PostMapping("/cars/toggleStatus")
-    public String toggleStatus(@RequestParam Long carId, RedirectAttributes redirectAttributes) {
+    public String toggleStatus(@RequestParam Long carId, Authentication auth, RedirectAttributes redirectAttributes) {
         try {
-            carService.toggleCarStatus(carId);
+            Long companyId = staffService.getCarRentalCompanyIdByUserId(auth);
+            carService.toggleCarStatus(carId, companyId);
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("warning", e.getMessage());
         }
@@ -79,9 +82,10 @@ public class EmployeeController {
     }
 
     @PostMapping("/cars/deleteCar")
-    public String deleteCar(@RequestParam Long carId, RedirectAttributes redirectAttributes) {
+    public String deleteCar(@RequestParam Long carId, Authentication auth, RedirectAttributes redirectAttributes) {
         try {
-            carService.deleteCar(carId);
+            Long companyId = staffService.getCarRentalCompanyIdByUserId(auth);
+            carService.deleteCar(carId, companyId);
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("warning", e.getMessage());
         }

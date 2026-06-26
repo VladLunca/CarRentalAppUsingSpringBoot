@@ -206,9 +206,10 @@ public class CarService {
     }
 
     @Transactional
-    public void updateCar(UpdateCarDto dto, MultipartFile imageFile) throws IOException {
+    public void updateCar(UpdateCarDto dto, Long companyId, MultipartFile imageFile) throws IOException {
         Car car = carRepository.findById(dto.getCarId())
                 .orElseThrow(() -> new RuntimeException("Car not found: " + dto.getCarId()));
+        verifyCarBelongsToCompany(car, companyId);
         car.setLicencePlate(dto.getLicencePlate());
         car.setColor(dto.getColor());
         car.setMileage(dto.getMileage());
@@ -220,9 +221,10 @@ public class CarService {
     }
 
     @Transactional
-    public void deleteCar(Long carId) {
+    public void deleteCar(Long carId, Long companyId) {
         Car car = carRepository.findById(carId)
                 .orElseThrow(() -> new RuntimeException("Car not found: " + carId));
+        verifyCarBelongsToCompany(car, companyId);
         if (rentalRepository.existsByCarAndStatusIn(car, List.of(RentalStatus.PENDING, RentalStatus.ACTIVE))) {
             throw new RuntimeException("Cannot delete a car with active or pending rentals");
         }
@@ -230,9 +232,10 @@ public class CarService {
     }
 
     @Transactional
-    public void toggleCarStatus(Long carId) {
+    public void toggleCarStatus(Long carId, Long companyId) {
         Car car = carRepository.findById(carId)
                 .orElseThrow(() -> new RuntimeException("Car not found: " + carId));
+        verifyCarBelongsToCompany(car, companyId);
         if (car.getStatus() == CarStatus.RENTED) {
             throw new RuntimeException("Cannot toggle status of a rented car");
         }
@@ -240,10 +243,18 @@ public class CarService {
         carRepository.save(car);
     }
 
+    private void verifyCarBelongsToCompany(Car car, Long companyId) {
+        if (companyId == null || car.getCarRentalCompany() == null
+                || !car.getCarRentalCompany().getId().equals(companyId)) {
+            throw new IllegalStateException("You can only manage cars of your own company.");
+        }
+    }
+
     @Transactional(readOnly = true)
-    public UpdateCarDto toUpdateDto(Long carId) {
+    public UpdateCarDto toUpdateDto(Long carId, Long companyId) {
         Car car = carRepository.findById(carId)
                 .orElseThrow(() -> new RuntimeException("Car not found: " + carId));
+        verifyCarBelongsToCompany(car, companyId);
         UpdateCarDto dto = new UpdateCarDto();
         dto.setCarId(car.getId());
         dto.setLicencePlate(car.getLicencePlate());

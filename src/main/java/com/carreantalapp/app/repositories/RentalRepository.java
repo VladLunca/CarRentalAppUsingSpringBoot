@@ -18,6 +18,9 @@ public interface RentalRepository extends JpaRepository<Rental, Long> {
     @Query("select r.car.id from Rental r where r.startDate <= :end and r.endDate >= :start and r.status != 'CANCELLED'")
     List<Long> findRentedCarIdsBetween(@Param("start") LocalDate start, @Param("end") LocalDate end);
 
+    @Query("select count(r) > 0 from Rental r where r.car.id = :carId and r.startDate <= :end and r.endDate >= :start and r.status != 'CANCELLED'")
+    boolean existsOverlappingRental(@Param("carId") Long carId, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
     boolean existsByCarAndStatusIn(Car car, List<RentalStatus> statuses);
 
     @Query("select r from Rental r where r.car.id = :carId and r.status = 'PENDING' and r.startDate <= :cutoff")

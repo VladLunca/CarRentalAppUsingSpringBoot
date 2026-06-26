@@ -51,8 +51,12 @@ public class StaffService {
     }
 
     @Transactional
-    public void removeRoleFromUserByUserId(Long userId) {
+    public void removeRoleFromUserByUserId(Long userId, Long companyId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
+        CarRentalCompany company = user.getUserRole().getCarRentalCompany();
+        if (company == null || !company.getId().equals(companyId)) {
+            throw new InvalidRoleAssignmentException("You can only manage staff of your own company.");
+        }
         user.getUserRole().setRole(UserRoleTypes.CUSTOMER);
         user.getUserRole().setCarRentalCompany(null);
     }
