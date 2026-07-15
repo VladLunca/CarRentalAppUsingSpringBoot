@@ -36,6 +36,7 @@ public class CarBrowserController {
     }
 
     @GetMapping("/chooseDates")
+    @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER','EMPLOYEE')")
     public String chooseDates(Model model) {
         LocalDate firstAvailable = carService.getFirstAvailableDate();
         model.addAttribute("minStart", firstAvailable);

@@ -49,7 +49,7 @@
             <div class="mb-4">
                 <h5 class="text-success">&#128100; My Account</h5>
                 <div class="d-flex gap-2 flex-wrap">
-                    <a th:href="@{/cars/chooseDates}" class="btn btn-outline-success btn-sm">
+                    <a sec:authorize="!hasAuthority('ROLE_SUPER_ADMIN')" th:href="@{/cars/chooseDates}" class="btn btn-outline-success btn-sm">
                         &#128665; Rent a Car
                     </a>
                     <a th:href="@{/rentals/allRentals(view='client')}" class="btn btn-outline-success btn-sm">

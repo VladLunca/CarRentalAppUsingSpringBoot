@@ -37,6 +37,7 @@ public class RentalController {
     }
 
     @GetMapping("/newRental")
+    @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER','EMPLOYEE')")
     public String newRentalForm(
             @RequestParam Long carId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
@@ -59,6 +60,7 @@ public class RentalController {
     }
 
     @PostMapping("/processRentalForm")
+    @PreAuthorize("hasAnyRole('CUSTOMER','MANAGER','EMPLOYEE')")
     public String processRentalForm(
             @Valid @ModelAttribute("rentalForm") RentalFormDto dto,
             BindingResult result,
