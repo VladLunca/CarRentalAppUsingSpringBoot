@@ -1,11 +1,6 @@
--- ============================================================
--- CAR RENTAL MARKETPLACE
--- Database tables
--- ============================================================
-
 
 -- ============================================================
--- ADRESE
+-- ADDRESS
 -- ============================================================
 CREATE TABLE address (
   address_id    BIGINT  NOT NULL AUTO_INCREMENT,
@@ -18,7 +13,7 @@ CREATE TABLE address (
 
 
 -- ============================================================
--- FIRME
+-- CAR_RENTAL_COMPANiES
 -- ============================================================
 CREATE TABLE car_rental_company (
   car_rental_company_id   BIGINT  NOT NULL AUTO_INCREMENT,
@@ -36,7 +31,7 @@ CREATE TABLE car_rental_company (
 
 
 -- ============================================================
--- DATE PERSONALE
+-- USER_DETAILS
 -- ============================================================
 CREATE TABLE user_details (
   user_details_id BIGINT  NOT NULL AUTO_INCREMENT,
@@ -54,7 +49,7 @@ CREATE TABLE user_details (
 
 
 -- ============================================================
--- CONTURI
+-- USERS
 -- ============================================================
 CREATE TABLE users (
   user_id         BIGINT  NOT NULL AUTO_INCREMENT,
@@ -71,7 +66,7 @@ CREATE TABLE users (
 
 
 -- ============================================================
--- ROLURI
+-- ROLES
 -- ============================================================
 CREATE TABLE user_roles (
   user_role_id          BIGINT  NOT NULL AUTO_INCREMENT,
@@ -100,7 +95,7 @@ CREATE TABLE user_roles (
 
 
 -- ============================================================
--- MOTOR
+-- ENGINE
 -- ============================================================
 CREATE TABLE engine (
   engine_id   BIGINT  NOT NULL AUTO_INCREMENT,
@@ -115,7 +110,7 @@ CREATE TABLE engine (
 
 
 -- ============================================================
--- CAROSERIE
+-- CAR_BODY
 -- ============================================================
 CREATE TABLE car_body (
   car_body_id     BIGINT  NOT NULL AUTO_INCREMENT,
@@ -130,7 +125,7 @@ CREATE TABLE car_body (
 
 
 -- ============================================================
--- TRANSMISIE
+-- TRANSMISSION
 -- ============================================================
 CREATE TABLE transmission (
   transmission_id   BIGINT  NOT NULL AUTO_INCREMENT,
@@ -144,7 +139,7 @@ CREATE TABLE transmission (
 
 
 -- ============================================================
--- CATEGORIE MASINA (economic, business, premium etc.)
+-- CATEGORY
 -- ============================================================
 CREATE TABLE category (
   category_id          BIGINT  NOT NULL AUTO_INCREMENT,
@@ -155,7 +150,7 @@ CREATE TABLE category (
 
 
 -- ============================================================
--- MODEL MASINA (global pe platforma)
+-- CAR_MODEL
 -- ============================================================
 CREATE TABLE car_model (
   car_model_id      BIGINT NOT NULL AUTO_INCREMENT,
@@ -189,7 +184,7 @@ CREATE TABLE car_model (
 
 
 -- ============================================================
--- MASINA FIZICA (instanta per firma)
+-- CAR
 -- ============================================================
 CREATE TABLE car (
   car_id                BIGINT  NOT NULL AUTO_INCREMENT,
@@ -212,7 +207,7 @@ CREATE TABLE car (
 
 
 -- ============================================================
--- PUNCTE DE RIDICARE/PREDARE ALE FIRMEI
+-- RENTAL_LOCATION
 -- ============================================================
 CREATE TABLE rental_location (
   rental_location_id    BIGINT  NOT NULL AUTO_INCREMENT,
@@ -229,7 +224,7 @@ CREATE TABLE rental_location (
 
 
 -- ============================================================
--- REZERVARE
+-- REMTAL
 -- ============================================================
 CREATE TABLE rental (
   rental_id           BIGINT  NOT NULL AUTO_INCREMENT,

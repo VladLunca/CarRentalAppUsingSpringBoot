@@ -1,7 +1,7 @@
 -- ============================================================
--- DEMO DATA — rulati pe o baza de date goala (dupa V1__initial_schema.sql)
+-- DEMO DATA
 -- ============================================================
--- Credentiale demo (toate conturile au parola: admin)
+--  DEMO DATA
 --   super_admin  / admin
 --   manager1     / admin
 --   employee1    / admin
@@ -9,7 +9,7 @@
 -- ============================================================
 
 -- ============================================================
--- COMPANIE
+-- COMPANY
 -- ============================================================
 INSERT INTO address (city_name, street_name, street_number)
 VALUES ('Bucuresti', 'Calea Victoriei', 10);
@@ -21,7 +21,7 @@ SET @company_id = LAST_INSERT_ID();
 
 
 -- ============================================================
--- CONTURI
+-- ACCOUNTS
 -- ============================================================
 
 -- Manager
@@ -62,7 +62,7 @@ VALUES (@customer_id, 'CUSTOMER', NULL);
 
 
 -- ============================================================
--- MOTOARE
+-- ENGINES
 -- ============================================================
 INSERT INTO engine (engine_type, horse_power, capacity) VALUES ('GASOLINE', 150, 1.6);
 SET @engine_gasoline_id = LAST_INSERT_ID();
@@ -75,7 +75,7 @@ SET @engine_electric_id = LAST_INSERT_ID();
 
 
 -- ============================================================
--- TRANSMISII
+-- TRANSMISSIONS
 -- ============================================================
 INSERT INTO transmission (transmission_type, transmission_name, number_of_gears)
 VALUES ('MANUAL', 'Manuala 6 trepte', 6);
@@ -87,7 +87,7 @@ SET @trans_auto_id = LAST_INSERT_ID();
 
 
 -- ============================================================
--- CAROSERII
+-- CAR_BODIES
 -- ============================================================
 INSERT INTO car_body (name, number_of_seats, number_of_doors) VALUES ('SEDAN', 5, 4);
 SET @body_sedan_id = LAST_INSERT_ID();
@@ -100,7 +100,7 @@ SET @body_hatchback_id = LAST_INSERT_ID();
 
 
 -- ============================================================
--- CATEGORII
+-- CATEGORIES
 -- ============================================================
 INSERT INTO category (category_name, category_description)
 VALUES ('Economy', 'Masini accesibile, potrivite pentru deplasari urbane.');
@@ -116,7 +116,7 @@ SET @cat_suv_id = LAST_INSERT_ID();
 
 
 -- ============================================================
--- MODELE MASINI
+-- CAR_MODELS
 -- ============================================================
 INSERT INTO car_model (brand, model, year, engine_id, car_body_id, transmission_id, category_id,
                        traction, fuel_consumption, number_of_luggage, price_per_day)
@@ -144,7 +144,7 @@ SET @model_tesla_id = LAST_INSERT_ID();
 
 
 -- ============================================================
--- MASINI
+-- CARS
 -- ============================================================
 INSERT INTO car (car_model_id, car_rental_company_id, licence_plate, color, mileage, status)
 VALUES (@model_logan_id, @company_id, 'B123LOG', 'Alb', 15000, 'AVAILABLE');
