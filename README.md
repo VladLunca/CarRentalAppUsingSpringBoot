@@ -515,46 +515,54 @@ spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3307/car_re
 spring.datasource.username=${SPRING_DATASOURCE_USERNAME:car_rental_user}
 spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:}
 
-spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.ddl-auto=validate
 
 app.upload-dir=/uploads
 spring.servlet.multipart.max-file-size=10MB
 spring.servlet.multipart.max-request-size=15MB
 ```
+### Database Migrations
 
-| Script | Purpose |
-|---|---|
-| `sql/create_tables.sql` | Full schema definition (reference only) |
-| `sql/demo_data.sql` | Demo dataset: company, accounts, components, car models, and vehicles |
+The database schema is managed using Flyway.
 
-**Automatic demo data initialization (startup behavior)**  
-The `demo_data.sql` script is executed automatically at application startup to populate the database when it is empty.
+| Script                                          | Purpose                                                               |
+|-------------------------------------------------|-----------------------------------------------------------------------|
+| `resorces/db/migration/V1__initial_schema.sql`  | Full schema definitiond                                               |
+| `resorces/db/migration/V2__initial_data.sql`    | Demo dataset: company, accounts, components, car models, and vehicles |
 
-**Quick population for demo** (use on an empty database after Hibernate has created the schema):
-
+**Automatic demo data initialization  (startup behavior)**
 ```bash
-mysql -u <user> -p car_rental < sql/demo_data.sql
+mysql -u <user> -p car_rental < sql/V2__initial_data.sql
 ```
-
-Conturi create de script (parola tuturor: `admin`):
-
-| Username | Rol |
-|---|---|
-| `admin` | SUPER_ADMIN (creat din `data.sql`) |
-| `manager1` | MANAGER @ AutoRent SRL |
-| `employee1` | EMPLOYEE @ AutoRent SRL |
-| `customer1` | CUSTOMER |
-
-Set `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` as environment variables in Docker to override defaults.
-
----
 
 ## Running with Docker
 
 ```bash
 docker compose up --build
 ```
+### Demo Accounts
 
+The following accounts are created by the database seed script.
+
+**Password for all accounts:** `admin`
+
+| Username | Role | Company |
+|---|---|---|
+| `admin` | SUPER_ADMIN | — |
+| `manager1` | MANAGER | AutoRent SRL |
+| `employee1` | EMPLOYEE | AutoRent SRL |
+| `customer1` | CUSTOMER | — |
+
+> **Note:** The `admin` account is created directly by the Flyway seed migration.
+
+### Database Configuration
+
+Set the following environment variables in Docker to override the default database configuration:
+
+```text
+SPRING_DATASOURCE_URL
+SPRING_DATASOURCE_USERNAME
+SPRING_DATASOURCE_PASSWORD
 App available at `http://localhost:8080`.
 
 After code changes:

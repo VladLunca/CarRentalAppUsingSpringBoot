@@ -23,7 +23,7 @@ public class Engine {
 
     @Min(value = 0, message = "Engine capacity must not be less than 0")
     @Column(name = "capacity")
-    private int engineCapacity;
+    private float engineCapacity;
 
     @NotNull(message = "Engine type must not be null")
     @Column(name = "engine_type")

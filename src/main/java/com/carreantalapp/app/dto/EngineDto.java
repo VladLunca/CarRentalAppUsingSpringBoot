@@ -18,7 +18,7 @@ public class EngineDto {
     private int horsePower;
 
     @Min(0)
-    private int engineCapacity;
+    private float engineCapacity;
 
     @NotNull
     private EngineTypes engineType;

@@ -8,7 +8,7 @@
 -- ADRESE
 -- ============================================================
 CREATE TABLE address (
-  address_id    INT NOT NULL AUTO_INCREMENT,
+  address_id    BIGINT  NOT NULL AUTO_INCREMENT,
   city_name     VARCHAR(50) NOT NULL,
   street_name   VARCHAR(50) NOT NULL,
   street_number INT NOT NULL,
@@ -21,9 +21,9 @@ CREATE TABLE address (
 -- FIRME
 -- ============================================================
 CREATE TABLE car_rental_company (
-  car_rental_company_id   INT NOT NULL AUTO_INCREMENT,
+  car_rental_company_id   BIGINT  NOT NULL AUTO_INCREMENT,
   car_rental_company_name VARCHAR(50) NOT NULL,
-  address_id              INT NOT NULL,
+  address_id              BIGINT  NOT NULL,
   phone_number            CHAR(10) NOT NULL,
   email                   VARCHAR(68) NOT NULL,
   description             VARCHAR(255),
@@ -39,7 +39,7 @@ CREATE TABLE car_rental_company (
 -- DATE PERSONALE
 -- ============================================================
 CREATE TABLE user_details (
-  user_details_id INT NOT NULL AUTO_INCREMENT,
+  user_details_id BIGINT  NOT NULL AUTO_INCREMENT,
   first_name      VARCHAR(68) NOT NULL,
   last_name       VARCHAR(68) NOT NULL,
   phone_number    CHAR(10) NOT NULL,
@@ -57,10 +57,10 @@ CREATE TABLE user_details (
 -- CONTURI
 -- ============================================================
 CREATE TABLE users (
-  user_id         INT NOT NULL AUTO_INCREMENT,
+  user_id         BIGINT  NOT NULL AUTO_INCREMENT,
   username        VARCHAR(20) NOT NULL,
   password        CHAR(68) NOT NULL,
-  user_details_id INT NOT NULL,
+  user_details_id BIGINT  NOT NULL,
   enabled         BOOLEAN NOT NULL DEFAULT TRUE,
   PRIMARY KEY (user_id),
   CONSTRAINT uq_username      UNIQUE (username),
@@ -74,10 +74,10 @@ CREATE TABLE users (
 -- ROLURI
 -- ============================================================
 CREATE TABLE user_roles (
-  user_role_id          INT NOT NULL AUTO_INCREMENT,
-  user_id               INT NOT NULL,
+  user_role_id          BIGINT  NOT NULL AUTO_INCREMENT,
+  user_id               BIGINT  NOT NULL,
   role                  VARCHAR(15) NOT NULL,
-  car_rental_company_id INT,
+  car_rental_company_id BIGINT,
   PRIMARY KEY (user_role_id),
   CONSTRAINT role_valid CHECK (
     role IN ('CUSTOMER', 'EMPLOYEE', 'MANAGER', 'SUPER_ADMIN')
@@ -103,7 +103,7 @@ CREATE TABLE user_roles (
 -- MOTOR
 -- ============================================================
 CREATE TABLE engine (
-  engine_id   INT NOT NULL AUTO_INCREMENT,
+  engine_id   BIGINT  NOT NULL AUTO_INCREMENT,
   engine_type VARCHAR(8) NOT NULL,
   horse_power INT NOT NULL,
   capacity    FLOAT,
@@ -118,7 +118,7 @@ CREATE TABLE engine (
 -- CAROSERIE
 -- ============================================================
 CREATE TABLE car_body (
-  car_body_id     INT NOT NULL AUTO_INCREMENT,
+  car_body_id     BIGINT  NOT NULL AUTO_INCREMENT,
   name            VARCHAR(10) NOT NULL,
   number_of_seats INT NOT NULL,
   number_of_doors INT NOT NULL,
@@ -133,7 +133,7 @@ CREATE TABLE car_body (
 -- TRANSMISIE
 -- ============================================================
 CREATE TABLE transmission (
-  transmission_id   INT NOT NULL AUTO_INCREMENT,
+  transmission_id   BIGINT  NOT NULL AUTO_INCREMENT,
   transmission_type VARCHAR(9) NOT NULL,
   transmission_name VARCHAR(30) NOT NULL,
   number_of_gears   INT NOT NULL,
@@ -147,7 +147,7 @@ CREATE TABLE transmission (
 -- CATEGORIE MASINA (economic, business, premium etc.)
 -- ============================================================
 CREATE TABLE category (
-  category_id          INT NOT NULL AUTO_INCREMENT,
+  category_id          BIGINT  NOT NULL AUTO_INCREMENT,
   category_name        VARCHAR(50) NOT NULL,
   category_description VARCHAR(100) NOT NULL,
   PRIMARY KEY (category_id)
@@ -158,14 +158,14 @@ CREATE TABLE category (
 -- MODEL MASINA (global pe platforma)
 -- ============================================================
 CREATE TABLE car_model (
-  car_model_id      INT NOT NULL AUTO_INCREMENT,
+  car_model_id      BIGINT NOT NULL AUTO_INCREMENT,
   brand             VARCHAR(20) NOT NULL,
   model             VARCHAR(20) NOT NULL,
   year              INT NOT NULL,
-  engine_id         INT NOT NULL,
-  car_body_id       INT NOT NULL,
-  transmission_id   INT NOT NULL,
-  category_id       INT NOT NULL,
+  engine_id         BIGINT  NOT NULL,
+  car_body_id       BIGINT  NOT NULL,
+  transmission_id   BIGINT  NOT NULL,
+  category_id       BIGINT  NOT NULL,
   traction          VARCHAR(5) NOT NULL,
   fuel_consumption  FLOAT NOT NULL,
   number_of_luggage INT NOT NULL,
@@ -192,9 +192,9 @@ CREATE TABLE car_model (
 -- MASINA FIZICA (instanta per firma)
 -- ============================================================
 CREATE TABLE car (
-  car_id                INT NOT NULL AUTO_INCREMENT,
-  car_model_id          INT NOT NULL,
-  car_rental_company_id INT NOT NULL,
+  car_id                BIGINT  NOT NULL AUTO_INCREMENT,
+  car_model_id          BIGINT  NOT NULL,
+  car_rental_company_id BIGINT  NOT NULL,
   licence_plate         CHAR(7) NOT NULL,
   color                 VARCHAR(20) NOT NULL,
   mileage               INT NOT NULL,
@@ -215,9 +215,9 @@ CREATE TABLE car (
 -- PUNCTE DE RIDICARE/PREDARE ALE FIRMEI
 -- ============================================================
 CREATE TABLE rental_location (
-  rental_location_id    INT NOT NULL AUTO_INCREMENT,
-  car_rental_company_id INT NOT NULL,
-  address_id            INT NOT NULL,
+  rental_location_id    BIGINT  NOT NULL AUTO_INCREMENT,
+  car_rental_company_id BIGINT  NOT NULL,
+  address_id            BIGINT  NOT NULL,
   name                  VARCHAR(50) NOT NULL,
   phone_number          CHAR(10),
   PRIMARY KEY (rental_location_id),
@@ -232,11 +232,11 @@ CREATE TABLE rental_location (
 -- REZERVARE
 -- ============================================================
 CREATE TABLE rental (
-  rental_id           INT NOT NULL AUTO_INCREMENT,
-  car_id              INT NOT NULL,
-  user_id             INT NOT NULL,
-  pickup_location_id  INT NOT NULL,
-  dropoff_location_id INT NOT NULL,
+  rental_id           BIGINT  NOT NULL AUTO_INCREMENT,
+  car_id              BIGINT  NOT NULL,
+  user_id             BIGINT  NOT NULL,
+  pickup_location_id  BIGINT  NOT NULL,
+  dropoff_location_id BIGINT  NOT NULL,
   start_date          DATE NOT NULL,
   end_date            DATE NOT NULL,
   status              VARCHAR(10) NOT NULL DEFAULT 'PENDING',
@@ -254,19 +254,5 @@ CREATE TABLE rental (
   CONSTRAINT rental_dropoff_fk    FOREIGN KEY (dropoff_location_id)
     REFERENCES rental_location(rental_location_id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
--- Cont SUPER_ADMIN  (user: admin / parola: admin)
 
-INSERT INTO user_details (first_name, last_name, phone_number, email, CNP)
-VALUES ('Super', 'Admin', '0700000000', 'admin@gmail.com', '1900101410011');
-
-INSERT INTO users (username, password, user_details_id, enabled)
-VALUES (
-           'admin',
-           '{bcrypt}$2a$10$wIhMeAanfDdxbpq8iDiG5.PDFHf.G6SJay.1dr79i/XBR2CRmrHIS',
-           LAST_INSERT_ID(),
-           TRUE
-       );
-
-INSERT INTO user_roles (user_id, role, car_rental_company_id)
-VALUES (LAST_INSERT_ID(), 'SUPER_ADMIN', NULL);
 

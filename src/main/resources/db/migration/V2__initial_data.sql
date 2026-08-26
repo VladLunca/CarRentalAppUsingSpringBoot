@@ -1,5 +1,5 @@
 -- ============================================================
--- DEMO DATA — rulati pe o baza de date goala (dupa create_tables.sql)
+-- DEMO DATA — rulati pe o baza de date goala (dupa V1__initial_schema.sql)
 -- ============================================================
 -- Credentiale demo (toate conturile au parola: admin)
 --   super_admin  / admin
