@@ -1,4 +1,5 @@
 # Car Rental App 
+[![tests](https://github.com/VladLunca/CarRentalAppUsingSpringBoot/actions/workflows/ci.yml/badge.svg)](https://github.com/VladLunca/CarRentalAppUsingSpringBoot/actions/workflows/ci.yml)
 
 Spring Boot web application for managing a car rental business. Supports multiple companies, roles, car fleet management, and customer rentals.
 
