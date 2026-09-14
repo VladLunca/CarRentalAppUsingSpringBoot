@@ -4,6 +4,7 @@ import com.carreantalapp.app.exceptions.CompanyNotFoundException;
 import com.carreantalapp.app.exceptions.RentalNotFoundException;
 import com.carreantalapp.app.exceptions.UserNotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,6 +18,14 @@ public class GlobalExceptionHandler {
     public String handleNotFound(RuntimeException e, Model model) {
         model.addAttribute("status", 404);
         model.addAttribute("message", e.getMessage());
+        return "error";
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public String handleAccessDenied(AccessDeniedException e, Model model) {
+        model.addAttribute("status", 403);
+        model.addAttribute("message", "You do not have permission to access this page.");
         return "error";
     }
 

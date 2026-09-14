@@ -1,11 +1,10 @@
 -- ============================================================
 -- DEMO DATA
 -- ============================================================
---  DEMO DATA
---   super_admin  / admin
---   manager1     / admin
---   employee1    / admin
---   customer1    / admin
+-- Credentials (password: admin)
+--   manager1     / admin  -- MANAGER  @ AutoRent SRL
+--   employee1    / admin  -- EMPLOYEE @ AutoRent SRL
+--   customer1    / admin  -- CUSTOMER
 -- ============================================================
 
 -- ============================================================

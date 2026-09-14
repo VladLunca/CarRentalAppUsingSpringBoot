@@ -85,17 +85,11 @@ public class UserService {
     }
     @Transactional
     public boolean removeUser(String username) {
-        if(usernameExists(username)){
-            if(userRepository.findByUsername(username).isPresent()){
-                userRepository.deleteUserById(userRepository.findByUsername(username).get().getId());
-            }
-            else {
-                return false;
-            }
-        }else {
-            return false;
-
-        }
-        return true;
+        return userRepository.findByUsername(username)
+                .map(user -> {
+                    userRepository.deleteUserById(user.getId());
+                    return true;
+                })
+                .orElse(false);
     }
 }

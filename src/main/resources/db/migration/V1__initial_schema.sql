@@ -13,7 +13,7 @@ CREATE TABLE address (
 
 
 -- ============================================================
--- CAR_RENTAL_COMPANiES
+-- CAR_RENTAL_COMPANIES
 -- ============================================================
 CREATE TABLE car_rental_company (
   car_rental_company_id   BIGINT  NOT NULL AUTO_INCREMENT,
@@ -224,7 +224,7 @@ CREATE TABLE rental_location (
 
 
 -- ============================================================
--- REMTAL
+-- RENTAL
 -- ============================================================
 CREATE TABLE rental (
   rental_id           BIGINT  NOT NULL AUTO_INCREMENT,

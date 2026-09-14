@@ -105,10 +105,15 @@ public class StaffService {
 
     public Long getCarRentalCompanyIdByUserId(Authentication  auth ) {
         User u = userRepository.findByUsername(auth.getName()).orElseThrow(() -> new UserNotFoundException(auth.getName()));
-        if(u.getUserRole().getRole().equals(UserRoleTypes.CUSTOMER) || u.getUserRole().getRole().equals(UserRoleTypes.SUPER_ADMIN)) {
+        UserRoleTypes role = u.getUserRole().getRole();
+        if(role.equals(UserRoleTypes.CUSTOMER) || role.equals(UserRoleTypes.SUPER_ADMIN)) {
             return null;
         }
-        return  u.getUserRole().getCarRentalCompany().getId();
+        CarRentalCompany company = u.getUserRole().getCarRentalCompany();
+        if (company == null) {
+            throw new CompanyRequiredException(role.name());
+        }
+        return company.getId();
     }
     public String getCompanyNameById(Long companyId) {
         return carRentalCompanyRepository.findById(companyId)

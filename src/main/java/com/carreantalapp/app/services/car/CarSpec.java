@@ -16,7 +16,7 @@ import java.util.List;
 public class CarSpec {
 
     public static Specification<Car> fromFilter(CarFilterDto filters) {
-        if (filters == null) return Specification.where((Specification<Car>) null);
+        if (filters == null) return (car, query, criteriaBuilder) -> null;
         return Specification.where(withBrands(filters.getBrands()))
                 .and(withBodyTypes(filters.getBodyTypes()))
                 .and(withCategories(filters.getCategories()))

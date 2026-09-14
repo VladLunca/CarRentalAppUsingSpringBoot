@@ -94,6 +94,7 @@ public class RentalController {
     }
 
     @GetMapping("/allRentals")
+    @PreAuthorize("hasAnyRole('CUSTOMER','EMPLOYEE','MANAGER','SUPER_ADMIN')")
     public String allRentals(
             @RequestParam(defaultValue = "client") String view,
             @RequestParam(defaultValue = "false") boolean pendingRentals,
@@ -103,10 +104,11 @@ public class RentalController {
             @RequestParam(defaultValue = "false") boolean driver,
             Authentication auth, Model model) {
 
-        boolean isStaff = auth.getAuthorities().stream()
+        boolean isSuperAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+        boolean isStaff = isSuperAdmin || auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_EMPLOYEE")
-                        || a.getAuthority().equals("ROLE_MANAGER")
-                        || a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+                        || a.getAuthority().equals("ROLE_MANAGER"));
 
         if (!"client".equals(view) && !isStaff) {
             return "redirect:/rentals/allRentals?view=client";
@@ -116,6 +118,9 @@ public class RentalController {
         if ("client".equals(view)) {
             rentals = rentalService.getRentalsForUser(
                     auth.getName(), pendingRentals, activeRentals, completedRentals, cancelledRentals, driver);
+        } else if (isSuperAdmin) {
+            rentals = rentalService.getAllRentals(
+                    pendingRentals, activeRentals, completedRentals, cancelledRentals, driver);
         } else {
             Long companyId = staffService.getCarRentalCompanyIdByUserId(auth);
             rentals = rentalService.getRentalsForCompany(
@@ -133,6 +138,7 @@ public class RentalController {
     }
 
     @PostMapping("/cancelRental")
+    @PreAuthorize("hasAnyRole('CUSTOMER','EMPLOYEE','MANAGER','SUPER_ADMIN')")
     public String cancelRental(
             @RequestParam Long rentalId,
             @RequestParam(defaultValue = "client") String view,

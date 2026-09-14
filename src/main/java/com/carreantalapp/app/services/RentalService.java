@@ -202,8 +202,10 @@ public class RentalService {
     }
 
     @Transactional(readOnly = true)
-    public List<RentalDto> getAllRentals() {
-        return rentalRepository.findAll().stream().map(this::toDto).toList();
+    public List<RentalDto> getAllRentals(boolean pending, boolean active,
+                                         boolean completed, boolean cancelled,
+                                         boolean driverOnly) {
+        return applyFilters(rentalRepository.findAll(), pending, active, completed, cancelled, driverOnly);
     }
 
     @EventListener(ApplicationReadyEvent.class)

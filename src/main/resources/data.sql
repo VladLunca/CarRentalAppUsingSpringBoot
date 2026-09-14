@@ -1,9 +1,10 @@
 -- ============================================================
--- SEED OBLIGATORIU + DATE DEMO
--- Rulat automat la fiecare pornire (spring.sql.init.mode=always)
--- Toate inserturile sunt idempotente (WHERE NOT EXISTS)
+-- REQUIRED SEED + DEMO DATA
+-- Superseded by the Flyway migrations in db/migration.
+-- Kept for reference; not executed while spring.sql.init.mode is disabled.
+-- All inserts are idempotent (WHERE NOT EXISTS)
 -- ============================================================
--- Credentiale (parola: admin)
+-- Credentials (password: admin)
 --   admin     / admin  — SUPER_ADMIN
 --   manager1  / admin  — MANAGER  @ AutoRent SRL
 --   employee1 / admin  — EMPLOYEE @ AutoRent SRL
@@ -33,7 +34,7 @@ WHERE NOT EXISTS (SELECT 1 FROM user_roles
 
 
 -- ============================================================
--- COMPANIE DEMO
+-- DEMO COMPANY
 -- ============================================================
 INSERT INTO address (city_name, street_name, street_number)
 SELECT 'Bucuresti', 'Calea Victoriei', 10
@@ -50,7 +51,7 @@ WHERE NOT EXISTS (SELECT 1 FROM car_rental_company WHERE email = 'contact@autore
 
 
 -- ============================================================
--- CONTURI DEMO
+-- DEMO ACCOUNTS
 -- ============================================================
 
 -- Manager
@@ -113,7 +114,7 @@ WHERE NOT EXISTS (SELECT 1 FROM user_roles
 
 
 -- ============================================================
--- MOTOARE
+-- ENGINES
 -- ============================================================
 INSERT INTO engine (engine_type, horse_power, capacity)
 SELECT 'GASOLINE', 150, 1.6
@@ -129,7 +130,7 @@ WHERE NOT EXISTS (SELECT 1 FROM engine WHERE engine_type = 'ELECTRIC' AND horse_
 
 
 -- ============================================================
--- CAROSERII
+-- CAR_BODIES
 -- ============================================================
 INSERT INTO car_body (name, number_of_seats, number_of_doors)
 SELECT 'SEDAN', 5, 4
@@ -145,7 +146,7 @@ WHERE NOT EXISTS (SELECT 1 FROM car_body WHERE name = 'HATCHBACK' AND number_of_
 
 
 -- ============================================================
--- TRANSMISII
+-- TRANSMISSIONS
 -- ============================================================
 INSERT INTO transmission (transmission_type, transmission_name, number_of_gears)
 SELECT 'MANUAL', 'Manuala 6 trepte', 6
@@ -157,7 +158,7 @@ WHERE NOT EXISTS (SELECT 1 FROM transmission WHERE transmission_name = 'Automata
 
 
 -- ============================================================
--- CATEGORII
+-- CATEGORIES
 -- ============================================================
 INSERT INTO category (category_name, category_description)
 SELECT 'Economy', 'Masini accesibile, potrivite pentru deplasari urbane.'
@@ -173,7 +174,7 @@ WHERE NOT EXISTS (SELECT 1 FROM category WHERE category_name = 'SUV');
 
 
 -- ============================================================
--- MODELE MASINI
+-- CAR_MODELS
 -- ============================================================
 INSERT INTO car_model (brand, model, year, engine_id, car_body_id, transmission_id, category_id,
                        traction, fuel_consumption, number_of_luggage, price_per_day)
@@ -217,7 +218,7 @@ WHERE NOT EXISTS (SELECT 1 FROM car_model WHERE brand = 'Tesla' AND model = 'Mod
 
 
 -- ============================================================
--- MASINI
+-- CARS
 -- ============================================================
 INSERT INTO car (car_model_id, car_rental_company_id, licence_plate, color, mileage, status)
 SELECT (SELECT car_model_id FROM car_model WHERE brand = 'Dacia' AND model = 'Logan' AND year = 2022),
